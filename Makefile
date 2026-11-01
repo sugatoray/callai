@@ -7,6 +7,8 @@
 #   make install.harnesses     install all of them
 #   make install.<tool>        install one (tool = the callai --name value)
 #   make docs.html             bundle docs/callai/ into one HTML page (build/docs.html)
+#   make test                  run the tests on the pinned development Python (.python-version)
+#   make test.matrix           run the tests on every supported Python (PYTHON_VERSIONS)
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -27,11 +29,26 @@ GROK_VERSION := 1.0.70
 
 HARNESSES := claude-code codex opencode pi hermes grok
 
-.PHONY: help docs.html install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
+.PHONY: help test test.matrix docs.html install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
 
 help: ## Show this help
 	@echo "Targets:"
 	@grep -E '^[a-zA-Z0-9_.-]+:.*## ' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-24s %s\n", $$1, $$2}'
+
+# Tests. `make test` uses the development Python pinned in .python-version. `make test.matrix` runs
+# the suite once per supported Python, each in a fresh isolated environment (your .venv is untouched);
+# uv downloads any Python it doesn't have. One version: make test.matrix PYTHON_VERSIONS=3.14
+# Keep PYTHON_VERSIONS, the classifiers in pyproject.toml and .github/workflows/tests.yml in step.
+PYTHON_VERSIONS ?= 3.11 3.12 3.13 3.14
+
+test: ## Run the tests on the pinned development Python (.python-version)
+	uv run --extra test pytest
+
+test.matrix: ## Run the tests on every supported Python, each isolated (PYTHON_VERSIONS="3.11 3.12 3.13 3.14")
+	@set -e; for py in $(PYTHON_VERSIONS); do \
+	  echo "== Python $$py"; \
+	  uv run --isolated --python $$py --extra test pytest -q; \
+	done
 
 # Single-page HTML docs. Links to files outside docs/ point at GitHub on DOCS_REF (default: this branch).
 DOCS_HTML ?= build/docs.html

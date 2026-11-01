@@ -12,6 +12,14 @@ authors = [
 ]
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
+classifiers = [  # the Python versions `make test.matrix` and CI test on
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
 dependencies = []  # stdlib-only by design (DESIGN.md §4)
 
 [project.urls]

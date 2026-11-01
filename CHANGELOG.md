@@ -13,6 +13,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from `sugatoray/devx` (`src/experiments/expt_callai`) at 0.8.0. Paths and links in the docs, the HTML docs
   builder and the project notes point at this repository; `pyproject.toml` gains `[project.urls]`.
 
+### Added
+
+- Tested on Python 3.11, 3.12, 3.13 and 3.14. `make test.matrix` runs the suite once per version, each in an
+  isolated environment that uv creates (set `PYTHON_VERSIONS` to choose); `make test` runs it on the
+  development Python, now pinned to 3.11 in `.python-version`. A GitHub Actions workflow
+  (`.github/workflows/tests.yml`) runs the same matrix plus ruff and interrogate on pushes to `master` and
+  on pull requests. `pyproject.toml` lists the four versions as classifiers; `requires-python` stays
+  `>=3.11` (no upper cap).
+
 ### Fixed
 
 - `test_old_tool_flag_is_gone` failed on Python 3.13, whose `--help` prints `-n, --name HARNESS_NAME`

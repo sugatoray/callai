@@ -49,6 +49,8 @@ Design reference: `docs/DESIGN.md` (section numbers below point there).
 - [x] CA-23: user documentation `docs/callai/` via `/create-lib-docs` (skill now in `sugatoray/aiskills`; Getting Started, Tutorial, Guides, Concepts, Reference, FAQ, llms.txt). Keep `reference/*.md` in sync with flags, errors and output whenever they change.
 - [x] CA-24: `make docs.html` bundles `docs/callai/` into one HTML page (`build/docs.html`): section tabs, page list, on-this-page outline, search, light/dark toggle. Builder + template in `docs/site/`; tabs come from the landing page's `### Section` lists, so a new page must be linked there or the build fails.
 
+- [x] CA-25: supported Pythons 3.11–3.14. `.python-version` pins 3.11 for development (`make test`); `make test.matrix` (`PYTHON_VERSIONS`) runs every version via `uv run --isolated --python`; `.github/workflows/tests.yml` runs the same per version plus lint. `requires-python` stays `>=3.11` (no cap: it breaks resolution for dependents); classifiers list the tested versions. Add a version: Makefile, workflow matrix and classifiers together.
+
 ## Later
 - [ ] CA-16: TypeScript port, module by module, passing the full `conformance/` suite (vitest); publish to npm. Maintained alongside Python.
 - [ ] CA-17: (if it makes sense) Rust port passing `conformance/`.

@@ -9,9 +9,11 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - User docs: `docs/callai/` (32 pages, 5 SVGs, `llms.txt`/`llms-full.txt`), written with the `/create-lib-docs` skill (published in `sugatoray/aiskills`). `make docs.html` bundles them into `build/docs.html` (gitignored).
 - All six harness CLIs are installed in the dev container (ephemeral). In a new session run `make install.harnesses` from the repository root; pinned versions are in the `Makefile`.
 - Network policy denies api.openai.com, api.x.ai and router.huggingface.co (cdnjs, jsDelivr and Google Fonts are allowed), and there are no model API keys, so non-claude fixtures come from `conformance/tools/stub_llm_server.py` (labelled STUB MODEL). `conformance/README.md` → "Recording without network" has every harness's config.
+- Python: develop on 3.11 (`.python-version`, `make test`); `make test.matrix` and CI (`.github/workflows/tests.yml`, not yet run on GitHub) cover 3.11–3.14, all passing locally.
 - 531 tests (+12 live, skipped by default), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~42 s (fan-out timing tests sleep).
 
 ## What just happened
+- CA-25: Python 3.11–3.14 support made explicit (pin, `make test.matrix`, CI workflow, classifiers). Fixed a test that failed on 3.13 (argparse help layout).
 - Moved to `sugatoray/callai`: `expt_callai`/"this experiment" wording replaced with callai / the repository root; `pyproject.toml` `[project.urls]` now point here; docs links point here.
 - 0.8.0 cut (`make docs.html`); the artifact was republished from the 0.8.0 build.
 - CA-24 `make docs.html`: `docs/site/build_docs_html.py` + `template.html`, tests in `src/tests/test_docs_html.py`. The same page was published as a private claude.ai artifact (https://claude.ai/artifact/GMbkLnE6SNvudiPsjYAM6w); republish it from `build/docs.html` if the docs change.

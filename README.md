@@ -145,8 +145,9 @@ that fails gives a result with `is_error=True`; `callai.CallaiError` subclasses 
 ```bash
 make install.harnesses             # all harness CLIs at their verified versions (or make install.<tool>)
 make docs.html                     # the docs as one HTML page with tabs and a theme toggle -> build/docs.html
-uv sync --extra test --extra dev   # Python >= 3.11, no runtime dependencies
-uv run pytest                      # tests + coverage gate (95%)
+uv sync --extra test --extra dev   # Python >= 3.11, no runtime dependencies; develops on the pinned 3.11 (.python-version)
+make test                          # tests + coverage gate (95%) on the pinned Python (same as: uv run pytest)
+make test.matrix                   # the same on every supported Python, 3.11-3.14 (or PYTHON_VERSIONS=3.13)
 uv run ruff check . && uv run ruff format --check .
 uv run interrogate src             # docstring coverage (100%)
 uv run callai --version
