@@ -1,4 +1,4 @@
-# Makefile for expt_callai.
+# Makefile for callai.
 #
 # Installs the coding-agent harness CLIs that callai drives, pinned to the versions the
 # adapters and conformance fixtures were verified against. Override a version on the

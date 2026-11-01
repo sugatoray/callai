@@ -1,11 +1,17 @@
 # Changelog
 
-All notable changes to this experiment are documented in this file.
+All notable changes to callai are documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+### Changed
+
+- callai now lives in its own repository, [sugatoray/callai](https://github.com/sugatoray/callai), imported
+  from `sugatoray/devx` (`src/experiments/expt_callai`) at 0.8.0. Paths and links in the docs, the HTML docs
+  builder and the project notes point at this repository; `pyproject.toml` gains `[project.urls]`.
 
 ## [0.8.0] - 2026-11-01
 
@@ -23,7 +29,7 @@ User documentation. No code changes; nothing here breaks existing use.
 
 ### Added
 
-- User documentation in `docs/callai/` (32 pages), written with the repo's `/create-lib-docs` skill.
+- User documentation in `docs/callai/` (32 pages), written with the `/create-lib-docs` skill (now published in [sugatoray/aiskills](https://github.com/sugatoray/aiskills)).
   - **Sections:** Getting Started, an 8-step tutorial, 6 how-to guides, Concepts with a glossary,
     a full reference (CLI, Python API, output formats, configuration, harnesses, every error message),
     and a FAQ.

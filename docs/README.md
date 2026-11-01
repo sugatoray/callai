@@ -1,3 +1,3 @@
 # README: `docs`
 
-Notes for this experiment's docs folder.
+Notes for this repository's docs folder.

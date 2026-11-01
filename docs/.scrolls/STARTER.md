@@ -1,6 +1,6 @@
 # STARTER.md — Read Me First
 
-You're picking up work on **expt_callai**. Before making changes, read the following files **in this exact order**:
+You're picking up work on **callai**. Before making changes, read the following files **in this exact order**:
 
 1. **`docs/.scrolls/SPEC.md`** — What the project does, feature by feature. Read this first so you understand the full surface area before you read anything else. Update this when you SHIP a feature (not when you start one).
 2. **`docs/.scrolls/HANDOFF.md`** — The "change of guard" note: current state, what just happened, recent bugs and their root causes. This is short-lived/tactical — read it to know what the *previous* session left you with. Update this at the **end of every session** (overwrite stale entries, don't let it grow forever — it's a snapshot, not a changelog).
@@ -22,6 +22,6 @@ You're picking up work on **expt_callai**. Before making changes, read the follo
 - Always use Red/Green TDD while developing or fixing code. _This is also mentioned inside **WISDOM.md**_.
 
 ## Quick orientation
-`expt_callai` builds `callai`, a thin dispatcher CLI: `callai -n HARNESS_NAME -p PROMPT [-m MODEL]` runs one non-interactive prompt through a coding-agent harness (claude-code, codex, opencode, pi, hermes, grok) and returns its output in one consistent text/JSON shape, modelled on `claude -p`. Scope, the language/distribution decisions and the roadmap (Python → TS port → maybe Rust) live in **`SCOPE.md`** at this experiment's root; the design lives in **`docs/DESIGN.md`** — read it after `SPEC.md` and before writing code; update it whenever a design decision changes, and resolve its "Open decisions" section as calls are made.
+This repository builds `callai`, a thin dispatcher CLI: `callai -n HARNESS_NAME -p PROMPT [-m MODEL]` runs one non-interactive prompt through a coding-agent harness (claude-code, codex, opencode, pi, hermes, grok) and returns its output in one consistent text/JSON shape, modelled on `claude -p`. Scope, the language/distribution decisions and the roadmap (Python → TS port → maybe Rust) live in **`SCOPE.md`** at the repository root; the design lives in **`docs/DESIGN.md`** — read it after `SPEC.md` and before writing code; update it whenever a design decision changes, and resolve its "Open decisions" section as calls are made.
 
 As the project grows, this file may end up pointing to additional `docs/.scrolls/*.md` files for specialized topics (architecture decisions, security reviews, subsystem deep-dives). If you add one, list it here in the numbered order above with the same "read this when / update this when" treatment as the core six, so future sessions don't have to guess whether it's load-bearing.

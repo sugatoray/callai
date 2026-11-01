@@ -1,4 +1,4 @@
-# expt_callai
+# callai
 
 `callai` is one command line for every coding-agent harness. It runs a single prompt non-interactively, like `claude -p`, through the harness you pick and prints the result:
 
@@ -157,11 +157,11 @@ Development follows Red/Green TDD. Shared behaviour cases live in [`conformance/
 
 ## Layout
 
-- `docs/` — the user documentation in [`docs/callai/`](docs/callai/README.md), [`DESIGN.md`](docs/DESIGN.md), plus this experiment's own [`docs/.scrolls/`](docs/.scrolls/STARTER.md) working-memory system.
-- `.trash/` — scratch/disposable files local to this experiment (git-ignored).
+- `docs/` — the user documentation in [`docs/callai/`](docs/callai/README.md), [`DESIGN.md`](docs/DESIGN.md), plus the project's own [`docs/.scrolls/`](docs/.scrolls/STARTER.md) working-memory system.
+- `.trash/` — scratch/disposable files local to this repository (git-ignored).
 - `conformance/` — language-agnostic test cases (argv, parse, CLI) shared by every implementation, plus `tools/`: a local stub model (with scripted tool calls) and the permission probe.
 - `src/` — `src/callai/` (CLI, runner, one adapter per harness in `adapters/`) and `src/tests/`.
-- [`CHANGELOG.md`](CHANGELOG.md) — notable changes to this experiment, [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) style with [SemVer](https://semver.org/) versions.
+- [`CHANGELOG.md`](CHANGELOG.md) — notable changes to callai, [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) style with [SemVer](https://semver.org/) versions.
 
 See [SCROLLS.md](SCROLLS.md) for how the memory system works.
 

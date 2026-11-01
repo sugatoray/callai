@@ -46,7 +46,7 @@ Design reference: `docs/DESIGN.md` (section numbers below point there).
 - [x] CA-15c: fan-out. Owner's syntax: `-n a/b/c` parallel, `-n a,b,c` sequential, `-n all` every installed harness concurrently. Preflight all before running; `-n all` skips refusals; text headers / `{"results"}` / tagged stream events; first failure's exit code; Ctrl-C stops all (`runner.stop_all`). Checked with all six real harnesses + stub.
 
 ## Docs
-- [x] CA-23: user documentation `docs/callai/` via `/create-lib-docs` (Getting Started, Tutorial, Guides, Concepts, Reference, FAQ, llms.txt). Keep `reference/*.md` in sync with flags, errors and output whenever they change.
+- [x] CA-23: user documentation `docs/callai/` via `/create-lib-docs` (skill now in `sugatoray/aiskills`; Getting Started, Tutorial, Guides, Concepts, Reference, FAQ, llms.txt). Keep `reference/*.md` in sync with flags, errors and output whenever they change.
 - [x] CA-24: `make docs.html` bundles `docs/callai/` into one HTML page (`build/docs.html`): section tabs, page list, on-this-page outline, search, light/dark toggle. Builder + template in `docs/site/`; tabs come from the landing page's `### Section` lists, so a new page must be linked there or the build fails.
 
 ## Later

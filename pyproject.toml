@@ -14,11 +14,11 @@ readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
 dependencies = []  # stdlib-only by design (DESIGN.md §4)
 
-#[project.urls]
-#Homepage = "https://github.com/sugatoray/devx"
-#Issues = "https://github.com/sugatoray/devx/issues"
-#Documentation = "https://github.com/sugatoray/devx/blob/master/src/experiments/expt_callai/README.md"
-#Source = "https://github.com/sugatoray/devx"
+[project.urls]
+Homepage = "https://github.com/sugatoray/callai"
+Issues = "https://github.com/sugatoray/callai/issues"
+Documentation = "https://github.com/sugatoray/callai/blob/master/docs/callai/README.md"
+Source = "https://github.com/sugatoray/callai"
 
 [project.optional-dependencies]
 test = ["pytest>=7.0", "pytest-cov>=4.0"]

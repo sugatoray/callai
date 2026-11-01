@@ -1,4 +1,4 @@
-"""Loader for the language-agnostic conformance suite in ``<experiment>/conformance/``.
+"""Loader for the language-agnostic conformance suite in ``conformance/`` at the repository root.
 
 The suite is plain JSON (plus recorded output files) so the later TypeScript and Rust
 ports can run exactly the same cases. File formats are documented in

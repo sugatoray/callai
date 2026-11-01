@@ -1,6 +1,6 @@
 # SPEC.md — Feature Spec
 
-What expt_callai does, feature by feature. Add a section per feature when it ships — describe *what* it does and *why* it matters to a user, not the implementation detail (that belongs in code comments or `WISDOM.md`).
+What callai does, feature by feature. Add a section per feature when it ships — describe *what* it does and *why* it matters to a user, not the implementation detail (that belongs in code comments or `WISDOM.md`).
 
 ## Run a prompt through Claude Code
 `callai -n claude-code -p PROMPT [-m MODEL]` runs `claude -p` non-interactively and prints just the answer.
@@ -102,7 +102,7 @@ browser (marked + highlight.js from cdnjs). Code: `docs/site/build_docs_html.py`
 
 ## Changelog convention
 
-`CHANGELOG.md` tracks notable changes to this experiment, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format with [Semantic Versioning](https://semver.org/) version numbers. It starts with an `[Unreleased]` section; add a dated, versioned section (`## [x.y.z] - YYYY-MM-DD`) once the experiment cuts an actual release/milestone worth naming.
+`CHANGELOG.md` tracks notable changes to callai, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format with [Semantic Versioning](https://semver.org/) version numbers. It starts with an `[Unreleased]` section; add a dated, versioned section (`## [x.y.z] - YYYY-MM-DD`) once callai cuts an actual release/milestone worth naming.
 
 <!--
 ## <Feature name>
