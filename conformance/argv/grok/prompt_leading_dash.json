@@ -1,0 +1,13 @@
+{
+  "description": "grok has no `--` for -p: `-p -- x` and `-p --help` are rejected by its parser. The `--single=PROMPT` form takes any text as the value, so the prompt is always one `--single=` element, last.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "--help"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--single=--help"
+  ]
+}

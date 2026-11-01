@@ -1,0 +1,30 @@
+{
+  "description": "Canonical order: model, permission, system prompt, extra args, then -- prompt.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "do it",
+    "model": "stub/stub-model",
+    "permission": "read-only",
+    "system_prompt": "S",
+    "extra_args": [
+      "--thinking",
+      "off"
+    ]
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--model",
+    "stub/stub-model",
+    "--tools",
+    "read,grep,find,ls",
+    "--no-mcp",
+    "--system-prompt",
+    "S",
+    "--thinking",
+    "off",
+    "--",
+    "do it"
+  ]
+}

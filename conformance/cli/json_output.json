@@ -1,0 +1,40 @@
+{
+  "description": "-o json prints the normalised Result (DESIGN §5); duration_ms varies so only a subset is compared.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "Reply with exactly: pong",
+    "-m",
+    "haiku",
+    "-o",
+    "json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_json_subset": {
+      "harness_name": "claude-code",
+      "model": "claude-haiku-5-5",
+      "text": "pong",
+      "exit_code": 0,
+      "is_error": false,
+      "session_id": "00000000-0000-4000-8000-000000000001",
+      "cost_usd": 0.0032503000000000002,
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--model",
+        "haiku",
+        "--",
+        "Reply with exactly: pong"
+      ]
+    }
+  }
+}

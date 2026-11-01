@@ -1,0 +1,16 @@
+{
+  "description": "Unknown --name value: usage error naming the bad value.",
+  "args": [
+    "-n",
+    "nope",
+    "-p",
+    "hi"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stderr_contains": [
+      "unknown harness",
+      "nope"
+    ]
+  }
+}

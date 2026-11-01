@@ -1,0 +1,17 @@
+{
+  "description": "--model takes provider/id (or a pattern), passed through verbatim. Verified against `pi --help` and docs/cli.md (pi 1.4.0).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "model": "anthropic/claude-sonnet-4-5"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--model",
+    "anthropic/claude-sonnet-4-5",
+    "--",
+    "hello"
+  ]
+}

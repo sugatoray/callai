@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "callai-cli"  # `callai` is taken on PyPI; the import package and command stay `callai`
+version = "0.8.0"
+description = "One CLI to run a prompt non-interactively through any coding-agent harness (claude-code, codex, opencode, pi, hermes, grok)."
+requires-python = ">=3.11"
+authors = [
+    { name = "Sugato Ray", email = "sugatoray.dev@gmail.com" }
+]
+readme = {file = "README.md", content-type = "text/markdown"}
+license = "Apache-2.0"
+classifiers = [  # the Python versions `make test.matrix` and CI test on
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+]
+dependencies = []  # stdlib-only by design (DESIGN.md §4)
+
+[project.urls]
+Homepage = "https://github.com/sugatoray/callai"
+Issues = "https://github.com/sugatoray/callai/issues"
+Documentation = "https://github.com/sugatoray/callai/blob/master/docs/callai/README.md"
+Source = "https://github.com/sugatoray/callai"
+
+[project.optional-dependencies]
+test = ["pytest>=7.0", "pytest-cov>=4.0"]
+dev = ["ruff>=0.6.0", "interrogate>=1.7.0"]
+
+[project.scripts]
+callai = "callai.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["callai*"]  # exclude the top-level src/tests/ package from the built wheel
+namespaces = false
+
+[tool.pytest.ini_options]
+testpaths = ["src/tests"]
+pythonpath = ["src"]
+addopts = "--cov=callai --cov-report=term-missing"
+markers = ["live: calls a real harness and model; skipped unless CALLAI_LIVE is set (see src/tests/test_live.py)"]
+
+[tool.coverage.run]
+source = ["callai"]
+branch = true
+patch = ["subprocess"]  # measure the end-to-end `python -m callai` runs too
+omit = [
+    "*/tests/*",
+    "*/__main__.py",  # 4-line trampoline; covered by an end-to-end subprocess test instead
+]
+
+[tool.coverage.report]
+show_missing = true
+fail_under = 95
+
+[tool.ruff]
+target-version = "py311"
+line-length = 120
+src = ["src"]
+include = ["*.py", "*.pyi"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "D", "DOC"]
+preview = true  # required for the DOC (pydoclint) rule set; scoped to lint only
+
+[tool.ruff.lint.pydocstyle]
+convention = "google"
+
+[tool.ruff.lint.per-file-ignores]
+"src/tests/*" = ["D", "DOC"]
+
+[tool.ruff.format]
+quote-style = "double"
+
+[tool.interrogate]
+fail-under = 100
+style = "google"
+verbose = 1
+exclude = ["src/tests", "build", "dist", ".venv"]

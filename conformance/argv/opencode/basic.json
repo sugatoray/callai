@@ -1,0 +1,18 @@
+{
+  "description": "`opencode run --format json` (JSONL events); `--print-logs --log-level ERROR` so failures carry the real reason on stderr. Verified against `opencode run --help` (opencode 1.19.5).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--",
+    "hello"
+  ]
+}

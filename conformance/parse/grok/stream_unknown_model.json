@@ -1,0 +1,21 @@
+{
+  "description": "STUB MODEL. grok 1.0.70 `--output-format streaming-json -m not-a-real-model-xyz`: the same `{\"type\": \"error\"}` line as json mode, exit 1. No events.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "Say hi.",
+    "model": "not-a-real-model-xyz",
+    "permission": "bypass",
+    "output_format": "stream-json"
+  },
+  "exit_code": 1,
+  "stdout_file": "stream_unknown_model.stdout",
+  "stderr_file": "stream_unknown_model.stderr",
+  "expected": {
+    "is_error": true,
+    "exit_code": 1,
+    "session_id": null,
+    "usage": null,
+    "text": "Couldn't set model 'not-a-real-model-xyz': Invalid params: \"unknown model id\". Run 'grok models' to see available models."
+  },
+  "expected_events": []
+}

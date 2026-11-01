@@ -1,0 +1,32 @@
+{
+  "description": "opencode end-to-end: the prompt reaches the harness split on spaces; -o text prints only the final text (recorded opencode output replayed by a fake).",
+  "args": [
+    "-n",
+    "opencode",
+    "-p",
+    "Reply with exactly: pong"
+  ],
+  "fake_harnesses": {
+    "opencode": {
+      "stdout_file": "../parse/opencode/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "opencode",
+      "run",
+      "--format",
+      "json",
+      "--print-logs",
+      "--log-level",
+      "ERROR",
+      "--",
+      "Reply",
+      "with",
+      "exactly:",
+      "pong"
+    ]
+  }
+}

@@ -1,0 +1,18 @@
+{
+  "description": "--model is passed through verbatim.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "model": "haiku"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "haiku",
+    "--",
+    "hello"
+  ]
+}

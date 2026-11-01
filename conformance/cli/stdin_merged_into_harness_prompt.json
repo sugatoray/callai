@@ -1,0 +1,28 @@
+{
+  "description": "-p TEXT + piped stdin reaches the harness as one argv prompt; the harness itself gets empty stdin.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "review",
+    "-o",
+    "raw"
+  ],
+  "stdin": "diff\n",
+  "fake_harnesses": {
+    "claude": {
+      "stdout": "ok"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "harness_argv": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--",
+      "review\n\ndiff"
+    ]
+  }
+}

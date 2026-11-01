@@ -1,0 +1,21 @@
+{
+  "description": "-n all runs every harness callai supports that is installed (here only claude and opencode), concurrently.",
+  "args": [
+    "-n",
+    "all",
+    "-p",
+    "Reply with exactly: pong"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "opencode": {
+      "stdout_file": "../parse/opencode/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "== claude-code ==\npong\n== opencode ==\npong\n"
+  }
+}

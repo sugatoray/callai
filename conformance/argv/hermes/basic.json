@@ -1,0 +1,15 @@
+{
+  "description": "`hermes chat -Q --query=PROMPT` runs one non-interactive turn; -Q keeps stdout to the answer (plus tool previews, which end in \\r\\n), and the session id goes to stderr. `--source tool` keeps callai runs out of the user's session list. Not `hermes -z`: it auto-approves every tool call, so it can only honour bypass. Verified against hermes-agent 0.19.0.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--query=hello"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "description": "`pi --mode json` runs the prompt, writes JSONL events and exits (no -p needed). Verified against `pi --help` and docs/cli.md (pi 1.4.0).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--",
+    "hello"
+  ]
+}

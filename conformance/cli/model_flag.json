@@ -1,0 +1,29 @@
+{
+  "description": "-m/--model reaches the adapter.",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-p",
+    "hello",
+    "--model",
+    "haiku"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--model",
+        "haiku",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

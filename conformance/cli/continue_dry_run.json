@@ -1,0 +1,15 @@
+{
+  "description": "--continue continues the harness's most recent session (codex: exec ... resume --last).",
+  "args": [
+    "-n",
+    "codex",
+    "-p",
+    "and then?",
+    "--continue",
+    "--dry-run"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout": "codex exec --json --skip-git-repo-check resume --last -- 'and then?'\n"
+  }
+}

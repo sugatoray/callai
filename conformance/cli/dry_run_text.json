@@ -1,0 +1,17 @@
+{
+  "description": "--dry-run prints the argv shell-quoted on one line (POSIX quoting, as Python shlex.join) and exits 0 without needing the binary.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "--dry-run"
+  ],
+  "env": {
+    "PATH": ""
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "claude -p --output-format json -- hello\n"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "A prompt starting with '-' is guarded by '--' (verified live).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "-x is not a flag"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--",
+    "-x is not a flag"
+  ]
+}

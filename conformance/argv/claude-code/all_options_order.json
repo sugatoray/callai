@@ -1,0 +1,30 @@
+{
+  "description": "Canonical flag order: model, permission, system prompt, extra args, then -- prompt. cwd/timeout are runner concerns, not argv.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "do it",
+    "model": "opus",
+    "permission": "auto",
+    "system_prompt": "S",
+    "extra_args": [
+      "--verbose"
+    ],
+    "cwd": "/tmp",
+    "timeout": 30
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--model",
+    "opus",
+    "--permission-mode",
+    "acceptEdits",
+    "--system-prompt",
+    "S",
+    "--verbose",
+    "--",
+    "do it"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "description": "callai --resume S1 \u2192 hermes chat `--resume ID` / `--continue` (most recent session; 0.19.0 --help).",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "resume": "S1"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--resume",
+    "S1",
+    "--query=hello"
+  ]
+}

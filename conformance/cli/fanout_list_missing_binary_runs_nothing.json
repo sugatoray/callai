@@ -1,0 +1,21 @@
+{
+  "description": "With an explicit list, a harness that isn't installed stops the call before anything runs (exit 127).",
+  "args": [
+    "-n",
+    "claude-code,codex",
+    "-p",
+    "hi"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 127,
+    "stdout": "",
+    "stderr_contains": [
+      "codex"
+    ]
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "description": "claude 2.1.314 `-p --output-format json --model haiku`, prompt 'Reply with exactly: pong'. Recorded 2026-10-30; session ids redacted.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "haiku"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_pong.stdout",
+  "expected": {
+    "harness_name": "claude-code",
+    "model": "claude-haiku-5-5",
+    "text": "pong",
+    "exit_code": 0,
+    "is_error": false,
+    "session_id": "00000000-0000-4000-8000-000000000001",
+    "cost_usd": 0.0032503000000000002,
+    "usage": {
+      "input_tokens": 42192,
+      "output_tokens": 4
+    }
+  }
+}

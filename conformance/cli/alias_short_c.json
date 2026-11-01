@@ -1,0 +1,25 @@
+{
+  "description": "-c is an alias of -p.",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-c",
+    "hello"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "description": "CALLAI_HARNESS_NAME supplies the default harness.",
+  "args": [
+    "-p",
+    "hello",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "env": {
+    "CALLAI_HARNESS_NAME": "claude-code"
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

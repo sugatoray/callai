@@ -1,0 +1,16 @@
+{
+  "description": "bypass: grok's always-approve mode.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--permission-mode",
+    "bypassPermissions",
+    "--single=hello"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "description": "Passthrough args go before the prompt.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--max-turns",
+      "3"
+    ]
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--max-turns",
+    "3",
+    "--single=hello"
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "description": "callai --resume S1 \u2192 grok `--resume=ID` (one element: --resume takes an optional value) / `--continue` (most recent session for the working directory; 1.0.70 --help).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "resume": "S1"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--resume=S1",
+    "--single=hello"
+  ]
+}

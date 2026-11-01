@@ -1,0 +1,16 @@
+{
+  "description": "Usage error (exit 2): use '/' (parallel) or ',' (one after another), not both.",
+  "args": [
+    "-n",
+    "codex/pi,grok",
+    "-p",
+    "hi"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "use '/' (parallel) or ',' (one after another), not both"
+    ]
+  }
+}

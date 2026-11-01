@@ -1,0 +1,52 @@
+# callai
+
+> callai runs one prompt through any coding-agent CLI and gives you the answer in one consistent shape.
+
+## Getting started
+
+- [Why callai](getting-started/why-callai.md): what problem callai solves, and when you don't need it.
+- [Installation](getting-started/installation.md): install callai and the harness CLIs you want to use.
+- [Quickstart](getting-started/quickstart.md): your first prompt, JSON output and a dry run, in five minutes.
+
+## Tutorial
+
+- [Tutorial overview](tutorial/README.md): a step-by-step path through everything callai does.
+- [1. Run your first prompt](tutorial/01-first-prompt.md): choose a harness, pass a prompt, read the answer.
+- [2. Get machine-readable output](tutorial/02-json-output.md): `-o json`, exit codes and using the result in scripts.
+- [3. Control what the agent may do](tutorial/03-permissions.md): `--permission` levels and how each harness honours them.
+- [4. Watch a run as it happens](tutorial/04-streaming.md): `-o stream-json` events.
+- [5. Continue a conversation](tutorial/05-sessions.md): `--resume` and `--continue`.
+- [6. Ask several harnesses at once](tutorial/06-fan-out.md): `-n a/b/c`, `-n a,b,c` and `-n all`.
+- [7. Set your defaults](tutorial/07-defaults.md): environment variables, the config file and model aliases.
+- [8. Use callai from Python](tutorial/08-python-api.md): `callai.run()` and event callbacks.
+
+## How-to guides
+
+- [Guides overview](guides/README.md): task-focused recipes.
+- [Call callai from an AI agent](guides/use-from-an-ai-agent.md): run harnesses as sub-agents safely and parse what comes back.
+- [Use callai in scripts and CI](guides/scripts-and-ci.md): stdin, timeouts, exit codes and JSON in shell pipelines.
+- [Compare harnesses side by side](guides/compare-harnesses.md): one prompt, every harness, a model alias each.
+- [Build a live progress view](guides/live-progress.md): turn stream events into a progress display.
+- [Test without a real model](guides/test-without-a-model.md): fake harnesses for your tests, and real harnesses against a stub model.
+- [Add a new harness](guides/add-a-harness.md): write an adapter and prove it with the conformance suite.
+
+## Concepts
+
+- [Concepts overview](concepts/README.md): the ideas behind callai, and a glossary.
+- [Architecture](concepts/architecture.md): adapters, the runner, and the one run path the CLI and the API share.
+- [Permissions](concepts/permissions.md): what each level allows per harness, and why callai fails closed.
+- [Normalised output](concepts/normalised-output.md): how six output formats become one result and one event stream.
+
+## Reference
+
+- [Reference overview](reference/README.md): exhaustive, one page per surface.
+- [Command line](reference/cli.md): every flag of `callai`, with defaults and examples.
+- [Python API](reference/python-api.md): `callai.run()`, `Result` and the exceptions.
+- [Output formats](reference/output.md): text, JSON, stream events, raw, dry run, `--list-harnesses` and fan-out shapes.
+- [Configuration](reference/configuration.md): `config.toml`, environment variables and precedence.
+- [Harnesses](reference/harnesses.md): exactly how callai invokes each harness, and what each supports.
+- [Exit codes and errors](reference/errors.md): every exit code and error message, with its cause and fix.
+
+## Help
+
+- [FAQ and troubleshooting](faq.md): common questions and problems, with answers.

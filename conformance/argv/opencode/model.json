@@ -1,0 +1,21 @@
+{
+  "description": "-m takes provider/model, passed through verbatim. Verified against `opencode run --help` (opencode 1.19.5).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "model": "anthropic/claude-sonnet-4-5"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--model",
+    "anthropic/claude-sonnet-4-5",
+    "--",
+    "hello"
+  ]
+}

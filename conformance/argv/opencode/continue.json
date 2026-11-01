@@ -1,0 +1,20 @@
+{
+  "description": "callai --continue \u2192 opencode run `--session ID` / `--continue` (1.19.5 --help).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "continue_session": true
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--continue",
+    "--",
+    "hello"
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "description": "--resume and --continue can't be combined (exit 2).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "--resume",
+    "S1",
+    "--continue"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "--resume or --continue, not both"
+    ]
+  }
+}

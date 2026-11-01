@@ -1,0 +1,24 @@
+{
+  "description": "Passthrough args go before the prompt guard, e.g. choosing opencode's plan agent explicitly.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--agent",
+      "plan"
+    ]
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--agent",
+    "plan",
+    "--",
+    "hello"
+  ]
+}

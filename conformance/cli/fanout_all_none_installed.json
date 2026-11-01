@@ -1,0 +1,19 @@
+{
+  "description": "-n all with no harness installed: exit 127.",
+  "args": [
+    "-n",
+    "all",
+    "-p",
+    "hi"
+  ],
+  "env": {
+    "PATH": ""
+  },
+  "expected": {
+    "exit_code": 127,
+    "stdout": "",
+    "stderr_contains": [
+      "-n all: none of the supported harnesses is installed"
+    ]
+  }
+}

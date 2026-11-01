@@ -1,0 +1,16 @@
+{
+  "description": "--system-prompt-override replaces grok's system prompt (the stub received exactly this text as the system message).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "system_prompt": "You are terse."
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--system-prompt-override",
+    "You are terse.",
+    "--single=hello"
+  ]
+}

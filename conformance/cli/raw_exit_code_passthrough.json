@@ -1,0 +1,21 @@
+{
+  "description": "The harness's own non-zero exit code is callai's exit code.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "-o",
+    "raw"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout": "partial",
+      "exit_code": 7
+    }
+  },
+  "expected": {
+    "exit_code": 7,
+    "stdout": "partial"
+  }
+}

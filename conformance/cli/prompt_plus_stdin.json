@@ -1,0 +1,26 @@
+{
+  "description": "-p TEXT plus piped stdin: prompt is TEXT + blank line + stdin (like `cat f | claude -p`).",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-p",
+    "review this"
+  ],
+  "stdin": "diff --git a b\n",
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "review this\n\ndiff --git a b"
+      ]
+    }
+  }
+}

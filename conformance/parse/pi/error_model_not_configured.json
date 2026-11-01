@@ -1,0 +1,20 @@
+{
+  "description": "pi 1.4.0 with --model nope/nothing (unknown to pi): no JSON events at all, exit 1, the reason only on stderr. Recorded 2026-10-30.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hi",
+    "model": "nope/nothing"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_model_not_configured.stdout",
+  "stderr_file": "error_model_not_configured.stderr",
+  "expected": {
+    "harness_name": "pi",
+    "model": "nope/nothing",
+    "exit_code": 1,
+    "is_error": true,
+    "session_id": null,
+    "usage": null,
+    "text": "Error: Model \"nope/nothing\" not found. Use --list-models to see available models."
+  }
+}

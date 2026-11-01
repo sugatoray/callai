@@ -1,0 +1,15 @@
+{
+  "description": "`codex exec` has subcommands (resume, fork, review, help); after '--' a prompt like 'review' stays a prompt (verified live).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "review"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--",
+    "review"
+  ]
+}

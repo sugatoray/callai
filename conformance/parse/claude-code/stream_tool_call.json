@@ -1,0 +1,38 @@
+{
+  "description": "claude 2.1.314 `-p --output-format stream-json --verbose --dangerously-skip-permissions` (as root with IS_SANDBOX=1). STUB MODEL, recorded 2026-10-30 with a scripted shell tool call (stub_llm_server.py --tool-call) and canned reply 'pong'; session ids and the working directory redacted. The last line is the same result object `--output-format json` prints.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "Say hi.",
+    "model": "stub-model",
+    "permission": "bypass",
+    "output_format": "stream-json"
+  },
+  "exit_code": 0,
+  "stdout_file": "stream_tool_call.stdout",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "model": "stub-model",
+    "session_id": "00000000-0000-4000-8000-000000000001"
+  },
+  "expected_events": [
+    {
+      "type": "tool_use",
+      "id": "toolu_stub_1",
+      "name": "Bash",
+      "input": {
+        "command": "echo hi"
+      }
+    },
+    {
+      "type": "tool_result",
+      "id": "toolu_stub_1",
+      "is_error": false,
+      "output": "hi"
+    },
+    {
+      "type": "text",
+      "text": "pong"
+    }
+  ]
+}

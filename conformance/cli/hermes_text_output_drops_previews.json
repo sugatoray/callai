@@ -1,0 +1,30 @@
+{
+  "description": "hermes end-to-end: -o text prints only the answer, not hermes's diff preview (recorded output replayed by a fake).",
+  "args": [
+    "-n",
+    "hermes",
+    "-p",
+    "Write hi to f.txt",
+    "-m",
+    "stub-model"
+  ],
+  "fake_harnesses": {
+    "hermes": {
+      "stdout_file": "../parse/hermes/success_after_write.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "hermes",
+      "chat",
+      "-Q",
+      "--source",
+      "tool",
+      "-m",
+      "stub-model",
+      "--query=Write hi to f.txt"
+    ]
+  }
+}

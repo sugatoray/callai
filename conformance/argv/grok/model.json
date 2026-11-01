@@ -1,0 +1,16 @@
+{
+  "description": "-m/--model is passed through verbatim.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "model": "grok-build"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--model",
+    "grok-build",
+    "--single=hello"
+  ]
+}

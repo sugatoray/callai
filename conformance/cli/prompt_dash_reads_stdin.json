@@ -1,0 +1,26 @@
+{
+  "description": "-p - reads the whole prompt from stdin.",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-p",
+    "-"
+  ],
+  "stdin": "abc\n",
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "abc"
+      ]
+    }
+  }
+}

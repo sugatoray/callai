@@ -1,0 +1,48 @@
+{
+  "description": "--dry-run -o json with several harnesses: {\"runs\": [{harness_name, argv, env?}]}.",
+  "args": [
+    "-n",
+    "claude-code,hermes",
+    "-p",
+    "hi",
+    "--system-prompt",
+    "S",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "runs": [
+        {
+          "harness_name": "claude-code",
+          "argv": [
+            "claude",
+            "-p",
+            "--output-format",
+            "json",
+            "--system-prompt",
+            "S",
+            "--",
+            "hi"
+          ]
+        },
+        {
+          "harness_name": "hermes",
+          "argv": [
+            "hermes",
+            "chat",
+            "-Q",
+            "--source",
+            "tool",
+            "--query=hi"
+          ],
+          "env": {
+            "HERMES_EPHEMERAL_SYSTEM_PROMPT": "S"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "Minimal request: `codex exec --json` (JSONL events) and --skip-git-repo-check so callai works outside git repos. Verified against `codex exec --help` (codex-cli 0.166.0).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--",
+    "hello"
+  ]
+}

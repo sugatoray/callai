@@ -1,0 +1,18 @@
+{
+  "description": "auto = read-only tools + edit/write, no bash: what claude's acceptEdits amounts to non-interactively (verified: model offered read, grep, find, ls, edit, write).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "permission": "auto"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--tools",
+    "read,grep,find,ls,edit,write",
+    "--no-mcp",
+    "--",
+    "hello"
+  ]
+}

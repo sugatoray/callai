@@ -1,0 +1,26 @@
+{
+  "description": "-n all skips harnesses that can't honour the options (here opencode has no read-only mode), saying so on stderr, and runs the rest.",
+  "args": [
+    "-n",
+    "all",
+    "-p",
+    "hi",
+    "--permission",
+    "read-only"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "opencode": {
+      "stdout_file": "../parse/opencode/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "== claude-code ==\npong\n",
+    "stderr_contains": [
+      "callai: skipping opencode:"
+    ]
+  }
+}

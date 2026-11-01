@@ -1,0 +1,16 @@
+{
+  "description": "-o stream-json needs no change: `codex exec --json` already streams JSONL events, which the adapter maps to callai's events.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "output_format": "stream-json"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--",
+    "hello"
+  ]
+}

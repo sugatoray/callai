@@ -1,0 +1,15 @@
+{
+  "description": "bypass adds nothing: pi's default already runs every tool without asking.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--",
+    "hello"
+  ]
+}

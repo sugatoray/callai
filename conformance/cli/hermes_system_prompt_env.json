@@ -1,0 +1,13 @@
+{
+  "description": "--system-prompt reaches hermes as HERMES_EPHEMERAL_SYSTEM_PROMPT in its environment; argv carries only the prompt.",
+  "args": ["-n", "hermes", "-p", "hi", "--system-prompt", "Be terse."],
+  "fake_harnesses": {
+    "hermes": {"stdout": "ok\n", "stderr": "\nsession_id: 20260101_000000_000001\n", "exit_code": 0}
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "ok\n",
+    "harness_argv": ["hermes", "chat", "-Q", "--source", "tool", "--query=hi"],
+    "harness_env": {"HERMES_EPHEMERAL_SYSTEM_PROMPT": "Be terse."}
+  }
+}

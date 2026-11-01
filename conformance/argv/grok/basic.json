@@ -1,0 +1,13 @@
+{
+  "description": "`grok --output-format json --single=PROMPT` runs one headless turn and prints one JSON object. Verified against `grok --help` (grok 1.0.70).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--single=hello"
+  ]
+}

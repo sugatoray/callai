@@ -1,0 +1,25 @@
+{
+  "description": "--dry-run with -o json prints {\"argv\": [...]}.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Config file: default_harness picks the harness when -n and CALLAI_HARNESS_NAME are absent, and a model alias resolves to that harness's own model name.",
+  "args": [
+    "-p",
+    "hi",
+    "-m",
+    "fast",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "config": "default_harness = \"codex\"\n\n[aliases]\nfast = { claude-code = \"haiku\", codex = \"gpt-5-codex-mini\" }\n",
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "codex",
+        "exec",
+        "--json",
+        "--skip-git-repo-check",
+        "--model",
+        "gpt-5-codex-mini",
+        "--",
+        "hi"
+      ]
+    }
+  }
+}

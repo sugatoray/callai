@@ -1,0 +1,21 @@
+{
+  "description": "STUB MODEL with a scripted shell tool call. grok 1.0.70 with `--permission-mode bypassPermissions --max-turns 1`: the call runs, then the turn limit stops grok before the answer (stopReason max_turn_requests, exit 1, reason on stderr).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "Run: echo hi > shell.txt",
+    "model": "stub-model",
+    "permission": "bypass",
+    "extra_args": [
+      "--max-turns",
+      "1"
+    ]
+  },
+  "exit_code": 1,
+  "stdout_file": "error_max_turns.stdout",
+  "stderr_file": "error_max_turns.stderr",
+  "expected": {
+    "is_error": true,
+    "exit_code": 1,
+    "text": "Error: max turns reached"
+  }
+}

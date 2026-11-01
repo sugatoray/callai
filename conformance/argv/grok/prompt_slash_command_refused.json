@@ -1,0 +1,10 @@
+{
+  "description": "grok runs a prompt starting with a slash command (e.g. /compact) as that command, even with --verbatim or --prompt-json. Refused rather than rewritten.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "/compact"
+  },
+  "expected_error": {
+    "message_contains": "slash command"
+  }
+}

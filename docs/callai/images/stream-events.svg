@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="380" viewBox="0 0 900 380" font-family="-apple-system, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="14" fill="#111827">
+  <title>-o stream-json: each harness's own events become the same five callai events</title>
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#374151"/></marker></defs>
+  <rect width="900" height="380" fill="#ffffff"/>
+  <rect x="0.5" y="0.5" width="899" height="379" fill="none" stroke="#d1d5db"/>
+  <text x="24" y="34" font-size="18" font-weight="700">-o stream-json: one event per line, as it happens</text>
+  <line x1="40" y1="120" x2="860" y2="120" stroke="#9ca3af" stroke-width="2" marker-end="url(#a)"/>
+  <text x="860" y="146" text-anchor="end" font-size="12" fill="#6b7280">time →</text>
+  <g font-family="ui-monospace, Menlo, Consolas, monospace" font-size="13" text-anchor="middle">
+    <rect x="40" y="70" width="120" height="34" rx="17" fill="#e5e7eb" stroke="#6b7280"/><text x="100" y="92">start</text>
+    <rect x="210" y="70" width="140" height="34" rx="17" fill="#fed7aa" stroke="#ea580c"/><text x="280" y="92">tool_use</text>
+    <rect x="390" y="70" width="150" height="34" rx="17" fill="#fde68a" stroke="#d97706"/><text x="465" y="92">tool_result</text>
+    <rect x="580" y="70" width="110" height="34" rx="17" fill="#c7d2fe" stroke="#4f46e5"/><text x="635" y="92">text</text>
+    <rect x="730" y="70" width="120" height="34" rx="17" fill="#bbf7d0" stroke="#059669"/><text x="790" y="92">result</text>
+  </g>
+  <g font-size="12" fill="#374151">
+    <text x="40" y="168">callai writes it once</text>
+    <text x="40" y="184">the binary is found</text>
+    <text x="210" y="168">the model asked</text>
+    <text x="210" y="184">for a tool</text>
+    <text x="390" y="168">what the tool returned</text>
+    <text x="390" y="184">(is_error if it failed</text>
+    <text x="390" y="200">or was refused)</text>
+    <text x="580" y="168">assistant text</text>
+    <text x="580" y="184">(whole or a piece)</text>
+    <text x="730" y="168">the -o json object;</text>
+    <text x="730" y="184">always last</text>
+  </g>
+  <text x="24" y="240" font-weight="700">Mapped from each harness's own stream</text>
+  <g font-size="12">
+    <text x="24" y="266"><tspan font-weight="700">claude</tspan>  --output-format stream-json --verbose: assistant / user messages → text, tool_use, tool_result</text>
+    <text x="24" y="286"><tspan font-weight="700">codex</tspan>  exec --json: item.started / item.completed → tool_use, tool_result; agent_message → text</text>
+    <text x="24" y="306"><tspan font-weight="700">opencode</tspan>  run --format json: text parts; tool_use parts carry input and output together</text>
+    <text x="24" y="326"><tspan font-weight="700">pi</tspan>  --mode json: text_delta pieces; tool_execution_start / _end</text>
+    <text x="24" y="346"><tspan font-weight="700">grok</tspan>  --output-format streaming-json: text pieces; tool_call / tool_call_update</text>
+    <text x="24" y="366"><tspan font-weight="700">hermes</tspan>  no event stream: start and result only</text>
+  </g>
+</svg>

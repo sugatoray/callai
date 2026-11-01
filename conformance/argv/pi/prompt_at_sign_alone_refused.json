@@ -1,0 +1,10 @@
+{
+  "description": "pi reads any message starting with '@' as a file to attach, even after '--' (verified: 'File not found: …/team please review'), and has no escape. Refuse instead of silently attaching a file.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "@team"
+  },
+  "expected_error": {
+    "message_contains": "@"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "A prompt starting with '-' must not be parsed as a flag; '--' guards it (verified against claude 2.1.314).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "-rm is not a flag"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--",
+    "-rm is not a flag"
+  ]
+}

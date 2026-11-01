@@ -1,0 +1,40 @@
+# Runs the same commands as local development: `make test.matrix` once per supported Python,
+# plus lint and docstring checks on the pinned development Python (.python-version).
+name: tests
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: test (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Keep in step with PYTHON_VERSIONS in the Makefile and the classifiers in pyproject.toml.
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: make test.matrix PYTHON_VERSIONS=${{ matrix.python-version }}
+
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked --extra test --extra dev
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run interrogate src

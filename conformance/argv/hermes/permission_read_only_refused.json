@@ -1,0 +1,11 @@
+{
+  "description": "hermes has no read-only toolset (`file` includes write_file and patch) and -t takes toolset names only, not tool names: refused rather than run with write access.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "permission": "read-only"
+  },
+  "expected_error": {
+    "message_contains": "read-only"
+  }
+}

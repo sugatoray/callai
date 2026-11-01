@@ -1,0 +1,19 @@
+{
+  "description": "Passthrough args go just before the prompt guard.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--ephemeral"
+    ]
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--ephemeral",
+    "--",
+    "hello"
+  ]
+}

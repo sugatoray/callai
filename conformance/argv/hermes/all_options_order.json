@@ -1,0 +1,25 @@
+{
+  "description": "Canonical order: model, permission, extra args, then --query=PROMPT.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "do it",
+    "model": "stub-model",
+    "permission": "auto",
+    "extra_args": [
+      "--ignore-rules"
+    ]
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "-m",
+    "stub-model",
+    "-t",
+    "file",
+    "--ignore-rules",
+    "--query=do it"
+  ]
+}

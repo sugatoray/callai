@@ -1,0 +1,2809 @@
+<!-- source: README.md -->
+# callai
+
+callai runs one prompt through any coding-agent CLI and gives you the answer in one consistent shape.
+
+Claude Code, Codex, opencode, pi, Hermes and Grok each have their own flags, output formats, permission
+models and quirks. callai turns one command into the right invocation for each, runs it without
+interaction, and returns the same text, JSON or event stream whichever harness answered. Use it from a
+shell, a script, CI, another AI agent, or Python.
+
+```bash
+callai -n codex -p "Reply with exactly: pong"
+```
+
+```text
+pong
+```
+
+```bash
+callai -n claude-code/codex/grok -p "Explain main.py" -o json     # three harnesses at once
+```
+
+## Features
+
+- **One interface, six harnesses:** `claude-code`, `codex`, `opencode`, `pi`, `hermes`, `grok`, chosen
+  with `-n`. Everything else (prompt, model, permissions, sessions) is spelled the same for all of them.
+- **Machine-readable output:** `-o json` gives one normalised result (`text`, `is_error`,
+  `session_id`, `usage`, …). `-o stream-json` streams `start`, `text`, `tool_use`, `tool_result` and
+  `result` events as they happen.
+- **Permission levels:** `--permission read-only|auto|bypass`, mapped to each harness's own flags and
+  checked by running real tool calls. callai refuses a level a harness can't honour rather than run
+  with more access.
+- **Sessions:** `--resume SESSION_ID` and `--continue` pick a conversation back up.
+- **Fan-out:** `-n a/b/c` runs several harnesses at the same time, `-n a,b,c` one after another, and
+  `-n all` every installed one.
+- **Scriptable:** predictable exit codes, `--dry-run` to see the exact command, and it never hangs on
+  an idle stdin.
+- **Python API:** `callai.run("codex", "…")` returns the same result. No runtime dependencies.
+
+## Documentation
+
+### Getting started
+
+- [Why callai](getting-started/why-callai.md): what problem callai solves, and when you don't need it.
+- [Installation](getting-started/installation.md): install callai and the harness CLIs you want to use.
+- [Quickstart](getting-started/quickstart.md): your first prompt, JSON output and a dry run, in five minutes.
+
+### Tutorial
+
+- [Tutorial overview](tutorial/README.md): a step-by-step path through everything callai does.
+- [1. Run your first prompt](tutorial/01-first-prompt.md): choose a harness, pass a prompt, read the answer.
+- [2. Get machine-readable output](tutorial/02-json-output.md): `-o json`, exit codes and using the result in scripts.
+- [3. Control what the agent may do](tutorial/03-permissions.md): `--permission` levels and how each harness honours them.
+- [4. Watch a run as it happens](tutorial/04-streaming.md): `-o stream-json` events.
+- [5. Continue a conversation](tutorial/05-sessions.md): `--resume` and `--continue`.
+- [6. Ask several harnesses at once](tutorial/06-fan-out.md): `-n a/b/c`, `-n a,b,c` and `-n all`.
+- [7. Set your defaults](tutorial/07-defaults.md): environment variables, the config file and model aliases.
+- [8. Use callai from Python](tutorial/08-python-api.md): `callai.run()` and event callbacks.
+
+### How-to guides
+
+- [Guides overview](guides/README.md): task-focused recipes.
+- [Call callai from an AI agent](guides/use-from-an-ai-agent.md): run harnesses as sub-agents safely and parse what comes back.
+- [Use callai in scripts and CI](guides/scripts-and-ci.md): stdin, timeouts, exit codes and JSON in shell pipelines.
+- [Compare harnesses side by side](guides/compare-harnesses.md): one prompt, every harness, a model alias each.
+- [Build a live progress view](guides/live-progress.md): turn stream events into a progress display.
+- [Test without a real model](guides/test-without-a-model.md): run real harnesses against the local stub model.
+- [Add a new harness](guides/add-a-harness.md): write an adapter and prove it with the conformance suite.
+
+### Concepts
+
+- [Concepts overview](concepts/README.md): the ideas behind callai, and a glossary.
+- [Architecture](concepts/architecture.md): adapters, the runner, and the one run path the CLI and the API share.
+- [Permissions](concepts/permissions.md): what each level allows per harness, and why callai fails closed.
+- [Normalised output](concepts/normalised-output.md): how six output formats become one result and one event stream.
+
+### Reference
+
+- [Reference overview](reference/README.md): exhaustive, one page per surface.
+- [Command line](reference/cli.md): every flag of `callai`.
+- [Python API](reference/python-api.md): `callai.run()`, `Result` and the exceptions.
+- [Output formats](reference/output.md): text, JSON, stream events, raw, dry run and fan-out shapes.
+- [Configuration](reference/configuration.md): `config.toml`, environment variables and precedence.
+- [Harnesses](reference/harnesses.md): exactly how callai invokes each harness.
+- [Exit codes and errors](reference/errors.md): every exit code and error message, with its cause and fix.
+
+### Help
+
+- [FAQ and troubleshooting](faq.md): common questions and problems, with answers.
+
+> [!NOTE]
+> The example output in these docs was recorded with the real harness CLIs (claude 2.1.316, codex-cli
+> 0.166.0, opencode 1.19.5, pi 1.4.0, hermes-agent 0.19.0, grok 1.0.70) talking to a local stub model,
+> so answers are short canned replies such as `pong`. The commands, flags, JSON shapes and errors
+> are real. Durations and session ids differ on every run.
+
+For AI agents: [`llms.txt`](llms.txt) indexes these pages, and [`llms-full.txt`](llms-full.txt) holds all of
+them in one file. Project design notes are in [`docs/DESIGN.md`](../DESIGN.md), and release history is in
+[`CHANGELOG.md`](../../CHANGELOG.md).
+
+<!-- source: getting-started/why-callai.md -->
+# Why callai
+
+callai gives every coding-agent CLI the same non-interactive interface, so you can switch harnesses
+or use several without rewriting the code that calls them.
+
+## The problem
+
+Each coding agent can run a single prompt without a chat window. They all do it differently:
+
+| You want | claude | codex | opencode | grok |
+|---|---|---|---|---|
+| Run one prompt | `claude -p -- P` | `codex exec -- P` | `opencode run -- P` | `grok --single=P` |
+| JSON output | `--output-format json` (one object) | `--json` (event lines) | `--format json` (event lines) | `--output-format json` (one object) |
+| Read-only | `--permission-mode plan` | `--sandbox read-only` | none | `--tools read_file,grep,list_dir …` |
+| Continue a session | `--resume ID` | `exec … resume ID` | `--session ID` | `--resume=ID` |
+| Where the answer is | `.result` | last `agent_message` item | `text` parts | `.text` |
+
+Each harness also has its own edge cases:
+- a prompt starting with `-` can be taken as a flag;
+- grok runs a prompt starting with `/` as a slash command;
+- opencode wraps any argument containing a space in quotes before sending it;
+- hermes prints tool previews mixed into the answer;
+- some harnesses read your stdin, so a script's open pipe can stall them.
+
+Code that drives one harness doesn't carry over to the next.
+
+## What callai does
+
+You write the call once:
+
+```bash
+callai -n codex -p "Fix the failing test" --permission auto -o json
+```
+
+callai builds the exact command line for the harness you chose, runs it with no prompts and no
+interactive input, and turns whatever it prints into the same result:
+
+```json
+{"harness_name": "codex", "text": "…", "is_error": false, "exit_code": 0, "session_id": "…", "usage": {"input_tokens": 11, "output_tokens": 2}, "…": "…"}
+```
+
+Change `-n codex` to `-n grok` and nothing else changes, including the JSON your code reads.
+
+## When to use it
+
+- **Scripts and CI** that call a coding agent and need a reliable answer and exit code.
+- **AI agents and orchestrators** that hand subtasks to other agents and parse the result.
+- **Comparing harnesses or models** on the same prompt (`-n all`).
+- **Not being locked in**: switch harness with one flag.
+
+## When you don't need it
+
+- You only ever use one harness interactively: use that harness directly.
+- You need a harness feature callai doesn't model: pass it through after `--`
+  (`callai -n opencode -p "…" -- --agent build`), or call the harness itself.
+- You want an SDK for building agents (tools, memory, planning). callai drives existing agent CLIs; it
+  doesn't build new ones.
+
+## Design principles
+
+- **Thin.** callai adds no behaviour of its own between you and the harness: no retries, no prompt
+  rewriting, no hidden flags. `--dry-run` prints exactly what will run.
+- **Fail closed.** If a harness can't honour an option, callai refuses (exit 2) instead of running with
+  more access or quietly ignoring it.
+- **Verified.** Every adapter is checked against the real harness CLI, and every permission level by
+  scripted tool calls. A shared conformance suite pins the behaviour.
+- **No dependencies.** Python standard library only.
+
+Next: [Installation](installation.md) · See also: [Architecture](../concepts/architecture.md)
+
+<!-- source: getting-started/installation.md -->
+# Installation
+
+Install callai itself, then the harness CLIs you want it to drive.
+
+## Requirements
+
+- Python 3.11 or newer. callai has no runtime dependencies.
+- macOS or Linux. Windows works, except that `callai -p TEXT` can block on a stdin pipe that never
+  closes. See the [FAQ](../faq.md#callai-hangs-on-windows-when-run-from-a-script).
+- At least one harness CLI on your `PATH`, signed in or configured with an API key.
+
+## Install callai
+
+callai is not on PyPI yet (its distribution name will be `callai-cli`). Install it from a clone of the
+repository, as a tool on your `PATH`:
+
+```bash
+git clone https://github.com/sugatoray/callai.git
+uv tool install ./callai
+callai --version
+```
+
+```text
+callai 0.8.0
+```
+
+Or into a virtual environment with pip, which also makes the Python API importable:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install ./callai
+.venv/bin/callai --version
+```
+
+## Install the harnesses
+
+Install only the ones you'll use. Each harness needs its own sign-in or API key: callai uses whatever
+the harness is already configured with.
+
+| `-n` name | Binary | Install |
+|---|---|---|
+| `claude-code` | `claude` | `npm install -g @anthropic-ai/claude-code` ([docs](https://code.claude.com/docs/en/setup)) |
+| `codex` | `codex` | `npm install -g @openai/codex` ([docs](https://developers.openai.com/codex/cli)) |
+| `opencode` | `opencode` | `npm install -g opencode-ai` ([docs](https://opencode.ai/docs/)) |
+| `pi` | `pi` | `npm install -g @earendil-works/pi-coding-agent` ([docs](https://pi.dev/docs/latest/quickstart)) |
+| `hermes` | `hermes` | `uv tool install hermes-agent` ([docs](https://hermes-agent.nousresearch.com/docs/)) |
+| `grok` | `grok` | `npm install -g @xai-official/grok` ([docs](https://x.ai/cli)) |
+
+From the project folder, the Makefile installs all of them at the versions callai was verified
+against:
+
+```bash
+cd callai
+make install.harnesses        # or one: make install.codex
+```
+
+> [!WARNING]
+> `npm install -g @vibe-kit/grok-cli` also installs a `grok` command, but it is a different program
+> with different flags, and callai doesn't support it. Use xAI's `@xai-official/grok`.
+
+## Check what's installed
+
+```bash
+callai --list-harnesses
+```
+
+```text
+claude-code  claude     2.1.316 (Claude Code)  /opt/node22/bin/claude
+codex        codex      codex-cli 0.166.0  /opt/node22/bin/codex
+opencode     opencode   1.19.5  /opt/node22/bin/opencode
+pi           pi         1.4.0  /opt/node22/bin/pi
+hermes       hermes     Hermes Agent v0.19.0 (2026.7.20)  /root/.local/bin/hermes
+grok         grok       grok 1.0.70 (f50904eaee6c)  /opt/node22/bin/grok
+```
+
+A harness that isn't installed shows `not installed (see <install URL>)` instead.
+
+Next: [Quickstart](quickstart.md) · Previous: [Why callai](why-callai.md)
+
+<!-- source: getting-started/quickstart.md -->
+# Quickstart
+
+Run a prompt, get JSON back, and see exactly what callai runs, in five minutes.
+
+**You'll need:** callai and at least one harness installed and signed in ([Installation](installation.md)).
+The examples use `codex`; any `-n` name works.
+
+## 1. Ask something
+
+```bash
+callai -n codex -p "Reply with exactly: pong"
+```
+
+```text
+pong
+```
+
+Only the answer is printed. Tool previews, banners and progress output are removed. The exit code is
+the harness's own: `0` here.
+
+## 2. Get JSON
+
+```bash
+callai -n codex -p "Reply with exactly: pong" -o json
+```
+
+```json
+{
+  "harness_name": "codex",
+  "model": null,
+  "text": "pong",
+  "exit_code": 0,
+  "is_error": false,
+  "duration_ms": 6979,
+  "session_id": "01a19506-c5ee-7893-ab89-d0f6b04924a4",
+  "usage": {"input_tokens": 11, "output_tokens": 2},
+  "cost_usd": null,
+  "argv": ["codex", "exec", "--json", "--skip-git-repo-check", "--", "Reply with exactly: pong"]
+}
+```
+
+The same keys come back for every harness. A value the harness doesn't report is `null`: `model` is
+`null` here because no `-m` was given and codex doesn't report the model it used. `argv` is the exact
+command that ran.
+
+## 3. See the command without running it
+
+```bash
+callai -n claude-code -m haiku -p "Explain main.py" --permission auto --dry-run
+```
+
+```text
+claude -p --output-format json --model haiku --permission-mode acceptEdits -- 'Explain main.py'
+```
+
+`--dry-run` doesn't need the harness to be installed. Use it to check what a flag turns into.
+
+## 4. Pipe something in
+
+```bash
+git diff | callai -n codex -p "Review this diff"
+```
+
+Piped text is appended to the prompt after a blank line. With no `-p` at all, the piped text *is* the
+prompt.
+
+## 5. Try another harness
+
+```bash
+callai -n claude-code -p "Reply with exactly: pong"
+callai -n claude-code/codex -p "Reply with exactly: pong"      # both, at the same time
+```
+
+```text
+pong
+== claude-code ==
+pong
+== codex ==
+pong
+```
+
+## Where next
+
+- Learn everything step by step: [Tutorial](../tutorial/README.md).
+- Calling callai from another agent? [Call callai from an AI agent](../guides/use-from-an-ai-agent.md).
+- Look up a flag: [Command line reference](../reference/cli.md).
+
+Previous: [Installation](installation.md)
+
+<!-- source: tutorial/README.md -->
+# Tutorial
+
+A step-by-step path through callai, from the first prompt to fan-out and the Python API.
+
+Each step builds on the one before and takes a few minutes. Every command can be pasted into a
+terminal as-is, and each one shows its real output. Read in order the first time; afterwards, the
+[Reference](../reference/README.md) is quicker for looking things up.
+
+**You'll need:** callai and at least one harness installed and signed in. See
+[Installation](../getting-started/installation.md). Most steps use `codex` or `claude-code`, but any
+harness works; where one behaves differently, the step says so.
+
+1. [Run your first prompt](01-first-prompt.md): choose a harness, pass a prompt, read the answer.
+2. [Get machine-readable output](02-json-output.md): `-o json`, exit codes and using the result in scripts.
+3. [Control what the agent may do](03-permissions.md): `--permission` levels.
+4. [Watch a run as it happens](04-streaming.md): `-o stream-json` events.
+5. [Continue a conversation](05-sessions.md): `--resume` and `--continue`.
+6. [Ask several harnesses at once](06-fan-out.md): `-n a/b/c`, `-n a,b,c`, `-n all`.
+7. [Set your defaults](07-defaults.md): environment variables, the config file and model aliases.
+8. [Use callai from Python](08-python-api.md): `callai.run()` and event callbacks.
+
+Start: [1. Run your first prompt](01-first-prompt.md)
+
+<!-- source: tutorial/01-first-prompt.md -->
+# 1. Run your first prompt
+
+Choose a harness with `-n`, pass a prompt with `-p`, and read the answer on stdout.
+
+**You'll need:** callai and one harness installed ([Installation](../getting-started/installation.md)).
+
+## Run it
+
+```bash
+callai -n claude-code -p "Reply with exactly: pong"
+```
+
+```text
+pong
+```
+
+Here is what happened:
+
+1. `-n claude-code` chose the harness. The names are `claude-code`, `codex`, `opencode`, `pi`, `hermes`
+   and `grok`.
+2. callai built the command `claude -p --output-format json -- 'Reply with exactly: pong'`. It asks
+   every harness for its structured output, so the answer is never scraped from screen text.
+3. It ran `claude` with no interactive input, in its own process group, and waited for it to finish.
+4. It took the answer out of claude's JSON and printed only that, followed by a newline.
+
+`-p` has three aliases (`-c`, `--prompt` and `--command`), so `claude -p` habits carry over.
+
+## Choose a model
+
+`-m` passes a model to the harness exactly as you type it:
+
+```bash
+callai -n claude-code -m haiku -p "Reply with exactly: pong"
+callai -n opencode -m anthropic/claude-haiku-4-5 -p "Reply with exactly: pong"
+```
+
+Each harness has its own model names. opencode and pi want `provider/model`, and the others take a
+name or id. Without `-m`, the harness uses its own default. To give one name a different meaning per
+harness, see [model aliases](07-defaults.md#name-models-once-with-aliases).
+
+## See the exact command
+
+```bash
+callai -n claude-code -m haiku -p "Reply with exactly: pong" --dry-run
+```
+
+```text
+claude -p --output-format json --model haiku -- 'Reply with exactly: pong'
+```
+
+`--dry-run` prints the command and exits 0 without running anything. The harness doesn't even need
+to be installed.
+
+## Prompts that look like flags
+
+callai always puts the prompt last, after `--` or as one `--option=PROMPT` argument, so a prompt such
+as `-v is broken` reaches the model as text. Three harnesses would treat certain prompts as commands,
+and callai refuses those (exit 2) rather than send them:
+
+- grok runs a prompt starting with `/` as a slash command;
+- pi reads a prompt starting with `@` as a file to attach;
+- both have no escape, so start the prompt with other text.
+
+## Pass extra flags to the harness
+
+Anything after a bare `--` goes to the harness unchanged:
+
+```bash
+callai -n opencode -p "Explain main.py" --dry-run -- --agent build
+```
+
+```text
+opencode run --format json --print-logs --log-level ERROR --agent build -- Explain main.py
+```
+
+Put callai's own flags before `--`. Everything after it belongs to the harness: had `--dry-run` come
+after `--`, opencode would have received it, and callai would have run opencode instead of printing
+the command.
+
+## Recap
+
+- `callai -n HARNESS -p PROMPT` runs one prompt and prints the answer.
+- `-m` is passed through verbatim; each harness has its own model names.
+- `--dry-run` shows the exact command; arguments after `--` go to the harness.
+
+Reference: [`-n`](../reference/cli.md#-n-harness_name---name-harness_name) · [`-p`](../reference/cli.md#-p-prompt---prompt-prompt) · [`--dry-run`](../reference/cli.md#--dry-run)
+
+Next: [2. Get machine-readable output](02-json-output.md) · Up: [Tutorial](README.md)
+
+<!-- source: tutorial/02-json-output.md -->
+# 2. Get machine-readable output
+
+`-o json` returns one normalised result object, and the exit code tells you whether the run worked.
+
+**You'll need:** [step 1](01-first-prompt.md).
+
+## One JSON object
+
+```bash
+callai -n codex -p "Reply with exactly: pong" -o json
+```
+
+```json
+{
+  "harness_name": "codex",
+  "model": null,
+  "text": "pong",
+  "exit_code": 0,
+  "is_error": false,
+  "duration_ms": 6979,
+  "session_id": "01a19506-c5ee-7893-ab89-d0f6b04924a4",
+  "usage": {"input_tokens": 11, "output_tokens": 2},
+  "cost_usd": null,
+  "argv": ["codex", "exec", "--json", "--skip-git-repo-check", "--", "Reply with exactly: pong"]
+}
+```
+
+callai prints it on one line; it's spread out here for reading. The fields you'll use most:
+
+| Field | Meaning |
+|---|---|
+| `text` | The final answer, or the error message when `is_error` is true. |
+| `is_error` | Whether the run failed: from the harness's own error signal, or a non-zero exit. |
+| `exit_code` | The harness's exit code. |
+| `session_id` | Pass it to `--resume` to continue the conversation ([step 5](05-sessions.md)). |
+| `usage` | Tokens, with `input_tokens` counting cache reads and writes too. `null` if unknown. |
+| `model` | The model the harness says it used, else the one you asked for. |
+
+Every field is described in the [output reference](../reference/output.md#-o-json).
+
+## Use it in a script
+
+```bash
+answer=$(callai -n codex -p "Reply with exactly: pong" -o json < /dev/null | jq -r .text)
+echo "$answer"
+```
+
+```text
+pong
+```
+
+Redirect stdin (`< /dev/null`) in scripts. With `-p`, callai waits up to 3 seconds for piped input
+when stdin is a pipe with nothing on it. This happens when a script or agent runs callai with an open,
+silent stdin. It then warns and carries on, but the redirect skips the wait.
+
+## Exit codes
+
+| Code | Meaning |
+|---|---|
+| `0` | The harness succeeded. |
+| harness's own | The harness failed with that code; `is_error` is `true`. |
+| `1` | The harness reported an error but exited 0 (e.g. grok refusing a tool call). |
+| `2` | Usage error: bad flag, no prompt, an option the harness can't honour. Nothing ran. |
+| `124` | `--timeout` expired; the harness and everything it started were killed. |
+| `127` | The harness isn't installed. |
+| `130` | Interrupted with Ctrl-C. |
+
+A failure still prints a result with `-o json`:
+
+```bash
+callai -n claude-code -m not-a-real-model-xyz -p hi -o json
+echo "exit=$?"
+```
+
+```text
+{"harness_name": "claude-code", "model": "not-a-real-model-xyz", "text": "There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it. Run --model to pick a different model.", "exit_code": 1, "is_error": true, …}
+exit=1
+```
+
+The harness's own stderr is shown on callai's stderr when a run fails. Add `-v` to see it live
+on every run.
+
+## Raw output
+
+`-o raw` skips parsing and prints the harness's own stdout and stderr unchanged, byte for byte. It's
+useful for debugging an adapter, and nothing else.
+
+## Recap
+
+- `-o json` gives the same object for every harness; `text` and `is_error` are the essentials.
+- Check the exit code: `2` means nothing ran, `124` timeout, `127` not installed.
+- Use `< /dev/null` when a script runs callai.
+
+Reference: [Output formats](../reference/output.md) · [Exit codes and errors](../reference/errors.md)
+
+Next: [3. Control what the agent may do](03-permissions.md) · Previous: [1. Run your first prompt](01-first-prompt.md)
+
+<!-- source: tutorial/03-permissions.md -->
+# 3. Control what the agent may do
+
+`--permission` sets one level (`read-only`, `auto` or `bypass`) that callai translates into each
+harness's own flags.
+
+**You'll need:** [step 2](02-json-output.md).
+
+## The four levels
+
+| Level | Intent |
+|---|---|
+| `default` | Add nothing: the harness's own default applies. |
+| `read-only` | Read and search files; no writes, no shell. |
+| `auto` | Edit files in the working directory without asking. |
+| `bypass` | Run every tool call without asking, shell included. |
+
+## See what a level turns into
+
+```bash
+callai -n codex -p "Fix the failing test" --permission read-only --dry-run
+callai -n codex -p "Fix the failing test" --permission auto --dry-run
+callai -n pi -p "Fix the failing test" --permission auto --dry-run
+```
+
+```text
+codex exec --json --skip-git-repo-check --sandbox read-only -- 'Fix the failing test'
+codex exec --json --skip-git-repo-check --sandbox workspace-write -- 'Fix the failing test'
+pi --mode json --tools read,grep,find,ls,edit,write --no-mcp -- 'Fix the failing test'
+```
+
+codex uses its sandbox. pi gets a tool allowlist: read and search tools, plus `edit` and `write`, but
+no shell.
+
+## When a harness can't honour a level
+
+callai refuses instead of running with more access than you asked for:
+
+```bash
+callai -n opencode -p "Fix the failing test" --permission read-only
+```
+
+```text
+callai: error: --permission read-only: opencode has no read-only mode (its plan agent still allows shell commands); pass `-- --agent plan` yourself if that is acceptable
+```
+
+The exit code is 2, and nothing ran. Some refusals mention a harness flag you can pass yourself after
+`--` if its behaviour is acceptable to you.
+
+## What each level really allows
+
+callai's levels were checked by running scripted tool calls (file writes and shell commands, inside
+and outside the working directory) against every harness:
+
+| Level | claude-code | codex | opencode | pi | grok | hermes |
+|---|---|---|---|---|---|---|
+| `read-only` | plan mode: no writes, no shell | read-only sandbox | refused | read tools only | read tools only | refused |
+| `auto` | edits inside the workspace | writes inside the workspace (sandboxed shell) | refused | file writes/edits, no shell | file writes/edits, no shell | file writes/edits, no shell |
+| `bypass` | everything | everything | everything | everything | everything | everything |
+
+> [!WARNING]
+> With `default`, opencode, pi and hermes already write files and run shell commands without asking.
+> claude-code, codex and grok don't. If an unattended run must not change anything, ask for
+> `read-only` explicitly.
+
+> [!CAUTION]
+> grok's `auto` and `bypass` can write **outside** the working directory. To confine grok to the
+> workspace, add its sandbox yourself (Linux needs bubblewrap):
+> `callai -n grok -p "…" --permission auto -- --sandbox workspace`.
+> See [Permissions](../concepts/permissions.md#grok-and-the-working-directory).
+
+## `bypass` warns you
+
+```bash
+callai -n codex -p "Reply with exactly: pong" --permission bypass
+```
+
+```text
+callai: warning: --permission bypass: codex will run every tool call without asking, including shell commands and writes outside the working directory.
+pong
+```
+
+The warning goes to stderr, so it doesn't mix into the answer.
+
+## Recap
+
+- One flag, four levels, translated per harness; `--dry-run` shows the translation.
+- A level a harness can't honour is refused with exit 2. callai never quietly grants more access.
+- `default` means the harness's own default, which for some harnesses is permissive.
+
+Reference: [`--permission`](../reference/cli.md#--permission-level) · Concept: [Permissions](../concepts/permissions.md)
+
+Next: [4. Watch a run as it happens](04-streaming.md) · Previous: [2. Get machine-readable output](02-json-output.md)
+
+<!-- source: tutorial/04-streaming.md -->
+# 4. Watch a run as it happens
+
+`-o stream-json` prints one JSON event per line while the harness works: what it says, which tools it
+calls, and what they return, followed by the result.
+
+**You'll need:** [step 2](02-json-output.md).
+
+## Stream a run
+
+```bash
+callai -n pi -m stub/stub-model -p "Reply with exactly: pong" -o stream-json
+```
+
+```json
+{"type": "start", "harness_name": "pi", "model": "stub/stub-model", "argv": ["pi", "--mode", "json", "--model", "stub/stub-model", "--", "Reply with exactly: pong"]}
+{"type": "text", "text": "pong"}
+{"type": "result", "harness_name": "pi", "model": "stub/stub-model", "text": "pong", "exit_code": 0, "is_error": false, "duration_ms": 1047, "session_id": "01a19507-07fe-7550-b76e-7a5f6b29a908", "usage": {"input_tokens": 11, "output_tokens": 2}, "cost_usd": 0, "argv": ["pi", "--mode", "json", "--model", "stub/stub-model", "--", "Reply with exactly: pong"]}
+```
+
+Each line is written and flushed as soon as it happens, so a reader sees progress live.
+
+![Timeline of stream events: start, tool_use, tool_result, text, result, and how each harness's own stream maps onto them](../images/stream-events.svg)
+
+There are five event types:
+
+| `type` | When | Fields |
+|---|---|---|
+| `start` | Once, when the harness binary has been found | `harness_name`, `model`, `argv` |
+| `text` | The assistant wrote text | `text` |
+| `tool_use` | The model called a tool | `id`, `name`, `input` |
+| `tool_result` | The tool returned | `id`, `is_error`, `output` |
+| `result` | Always last | The same fields as `-o json` |
+
+## A run with a tool call
+
+When the agent uses a tool, you see the call, then its result, then the answer. This is claude
+running a shell command:
+
+```json
+{"type": "start", "harness_name": "claude-code", "model": null, "argv": ["claude", "-p", "--output-format", "stream-json", "--verbose", "--", "Say hi."]}
+{"type": "tool_use", "id": "toolu_stub_1", "name": "Bash", "input": {"command": "echo hi"}}
+{"type": "tool_result", "id": "toolu_stub_1", "is_error": false, "output": "hi"}
+{"type": "text", "text": "pong"}
+{"type": "result", "harness_name": "claude-code", "text": "pong", "is_error": false, "…": "…"}
+```
+
+`name` and `input` are the harness's own tool name and arguments: `Bash` for claude,
+`command_execution` for codex, `bash` for pi and opencode, `run_terminal_command` for grok.
+`tool_result.id` matches the `tool_use` it answers. A refused or failed call has `"is_error": true`.
+
+## What differs between harnesses
+
+- `text` is a whole message for claude, codex and opencode, but pieces of a message for pi and grok.
+  Join the `text` events in order to get everything the assistant said. The final answer is always
+  `result.text`.
+- callai switches claude to `--output-format stream-json --verbose` and grok to
+  `--output-format streaming-json`. The other harnesses already stream.
+- hermes has no event stream, so you get only `start` and `result`.
+
+## When something goes wrong
+
+- If the harness isn't installed, nothing is printed on stdout (not even `start`), and callai exits
+  127.
+- A failed run still ends with a `result` event with `is_error: true`.
+- A timeout (124) or Ctrl-C (130) ends the stream without a `result`. The exit code says why.
+
+## Recap
+
+- `-o stream-json` = `start`, then `text` / `tool_use` / `tool_result` live, then `result`.
+- Same events for every harness; `result` is the `-o json` object.
+- No `result` line means callai itself stopped the run: check the exit code.
+
+Reference: [Stream events](../reference/output.md#-o-stream-json) · Guide: [Build a live progress view](../guides/live-progress.md)
+
+Next: [5. Continue a conversation](05-sessions.md) · Previous: [3. Control what the agent may do](03-permissions.md)
+
+<!-- source: tutorial/05-sessions.md -->
+# 5. Continue a conversation
+
+Every run reports a `session_id`. Pass it to `--resume` to continue that conversation, or use
+`--continue` for the harness's most recent one.
+
+**You'll need:** [step 2](02-json-output.md).
+
+## Resume by id
+
+```bash
+SID=$(callai -n claude-code -p "Reply with exactly: pong" -o json < /dev/null | jq -r .session_id)
+callai -n claude-code -p "And again?" --resume "$SID" -o json < /dev/null | jq --arg sid "$SID" '.text, .session_id == $sid'
+```
+
+```text
+"pong"
+true
+```
+
+The second run carries the first run's turns: the model sees the whole conversation. The run reports
+the same `session_id`.
+
+`--dry-run` shows the harness's own flag:
+
+```bash
+callai -n claude-code -p "And again?" --resume SESSION_ID --dry-run
+```
+
+```text
+claude -p --output-format json --resume SESSION_ID -- 'And again?'
+```
+
+Each harness spells it differently, and callai maps it for you:
+
+| Harness | `--resume ID` | `--continue` |
+|---|---|---|
+| claude-code | `--resume ID` | `--continue` (most recent in this directory) |
+| codex | `exec … resume ID -- PROMPT` | `exec … resume --last -- PROMPT` |
+| opencode | `--session ID` | `--continue` |
+| pi | `--session ID` | `--continue` |
+| hermes | `--resume ID` | refused, see below |
+| grok | `--resume=ID` | `--continue` (most recent for this directory) |
+
+This was checked with each real harness: the resumed request contains the earlier turns.
+
+## Continue the most recent session
+
+```bash
+callai -n codex -p "Now add a test for it" --continue
+```
+
+"Most recent" is the harness's own idea of it, which usually means the most recent in the current
+directory. If several things use the same harness in the same place, prefer `--resume` with an id.
+
+> [!NOTE]
+> **hermes refuses `--continue`.** `hermes chat --continue` only looks at interactive sessions, never
+> at the non-interactive ones callai starts, so it would continue a different conversation. Use
+> `--resume` with the `session_id` callai reported:
+>
+> ```text
+> callai: error: --continue: hermes only continues its most recent interactive session, not callai's runs; use --resume with the session_id callai reported
+> ```
+
+## Rules
+
+- `--resume` and `--continue` can't be combined.
+- There's no `-c` short form for `--continue`, because `-c` already means `--command` (the prompt).
+- A session id can't start with `-`, because the harness would read it as an option.
+- Permissions apply to every run, resumed or not. For codex, callai checked that a resumed run gets
+  the sandbox you ask for this time.
+
+## Recap
+
+- `session_id` from `-o json` → `--resume ID` continues that conversation.
+- `--continue` picks the harness's latest session (not for hermes).
+
+Reference: [`--resume`](../reference/cli.md#--resume-session_id) · [`--continue`](../reference/cli.md#--continue)
+
+Next: [6. Ask several harnesses at once](06-fan-out.md) · Previous: [4. Watch a run as it happens](04-streaming.md)
+
+<!-- source: tutorial/06-fan-out.md -->
+# 6. Ask several harnesses at once
+
+Give `-n` several names to run one prompt through each of them. Separate the names with `/` to run
+them at the same time, or with `,` to run them one after another. `-n all` runs every installed harness.
+
+**You'll need:** [step 2](02-json-output.md), and two or more harnesses installed.
+
+## At the same time
+
+```bash
+callai -n codex/pi/grok -p "Reply with exactly: pong"
+```
+
+```text
+== codex ==
+pong
+== pi ==
+pong
+== grok ==
+pong
+```
+
+The answers print in the order you named the harnesses, whichever finishes first, each under a
+`== name ==` header.
+
+![Fan-out timeline: with '/' the harnesses run at the same time and the call ends when the slowest does; with ',' they run one after another](../images/fan-out.svg)
+
+## One after another
+
+```bash
+callai -n codex,pi,grok -p "Reply with exactly: pong"
+```
+
+The output looks the same. The difference is timing, and what the harnesses can see: they all share
+one working directory, so use `,` for prompts that edit files. Otherwise two agents edit the same files
+at once.
+
+## Every installed harness
+
+```bash
+callai -n all -p "Reply with exactly: pong" --permission read-only
+```
+
+```text
+callai: skipping opencode: --permission read-only: opencode has no read-only mode (its plan agent still allows shell commands); pass `-- --agent plan` yourself if that is acceptable
+callai: skipping hermes: --permission read-only: hermes has no read-only toolset (its `file` toolset can write); use the default or --permission auto
+== claude-code ==
+pong
+== codex ==
+pong
+== pi ==
+pong
+== grok ==
+pong
+```
+
+`-n all` uses only the harnesses that are installed, and skips (with a note on stderr) any that can't
+honour your options. With an explicit list, a harness that can't honour them stops the whole call
+before anything runs.
+
+## When one fails
+
+```bash
+callai -n claude-code/codex -m not-a-real-model-xyz -p hi
+echo "exit=$?"
+```
+
+```text
+== claude-code (failed, exit 1) ==
+There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it. Run --model to pick a different model.
+== codex (failed, exit 1) ==
+The model `not-a-real-model-xyz` does not exist.
+exit=1
+```
+
+One failure doesn't stop the others. Each failed harness's own stderr follows on stderr under a
+`--- name stderr ---` line. The exit code is 0 if every run succeeded, otherwise the first failure's in
+the order given. A harness that times out becomes a failed result with exit code 124, and the others
+keep going. Ctrl-C stops them all (exit 130).
+
+## JSON and events
+
+- `-o json` gives `{"results": [ … ]}`: one `-o json` object per harness, in order.
+- `-o stream-json` interleaves the harnesses' events live. Every event carries `harness_name`.
+- `--dry-run` prints one command line per harness. With `-o json` it prints `{"runs": [ … ]}`.
+
+## Rules
+
+- `-m` applies to every harness. Model names differ between harnesses, so give each its own with a
+  [model alias](07-defaults.md#name-models-once-with-aliases), or leave `-m` out.
+- Piped stdin is read once and shared.
+- `-o raw` and arguments after `--` need a single harness, because they are specific to one harness.
+- Mixing separators (`a/b,c`), repeating a name, or putting `all` in a list is a usage error.
+
+## Recap
+
+- `-n a/b/c` runs at the same time, `-n a,b,c` one after another, and `-n all` every installed harness.
+- Results come back in the order given; the exit code is the first failure's.
+
+Reference: [`-n`](../reference/cli.md#-n-harness_name---name-harness_name) · [Fan-out output](../reference/output.md#fan-out) · Guide: [Compare harnesses side by side](../guides/compare-harnesses.md)
+
+Next: [7. Set your defaults](07-defaults.md) · Previous: [5. Continue a conversation](05-sessions.md)
+
+<!-- source: tutorial/07-defaults.md -->
+# 7. Set your defaults
+
+Set a default harness, model and timeout once, in environment variables or a config file, and give
+models short names that mean the right thing for each harness.
+
+**You'll need:** [step 1](01-first-prompt.md).
+
+## Environment variables
+
+```bash
+export CALLAI_HARNESS_NAME=codex
+export CALLAI_TIMEOUT=600
+callai -p "Reply with exactly: pong"          # runs codex, killed after 10 minutes
+```
+
+| Variable | Sets | Same as |
+|---|---|---|
+| `CALLAI_HARNESS_NAME` | Harness (also `a/b`, `a,b`, `all`) | `-n` |
+| `CALLAI_MODEL` | Model or alias | `-m` |
+| `CALLAI_TIMEOUT` | Seconds | `--timeout` |
+| `CALLAI_STDIN_WAIT` | Seconds to wait for piped input with `-p` (default 3) | — |
+| `CALLAI_CONFIG` | Path of the config file | — |
+
+A flag always wins over its variable. An empty variable counts as unset.
+
+## The config file
+
+callai reads `~/.config/callai/config.toml` (or `$XDG_CONFIG_HOME/callai/config.toml`, or the file
+named in `CALLAI_CONFIG`). It is optional:
+
+```toml
+default_harness = "claude-code"
+model = "fast"                       # default model for every harness (here an alias)
+timeout = 600
+
+[harnesses.codex]
+model = "gpt-5-codex"                # codex's own default; beats the top-level model
+extra_args = ["--ephemeral"]         # passed to codex before anything after --
+
+[aliases]
+fast  = { claude-code = "haiku", codex = "gpt-5-codex-mini", opencode = "anthropic/claude-haiku-4-5" }
+smart = { claude-code = "opus",  codex = "gpt-5-codex" }
+```
+
+With that file:
+
+```bash
+callai -p "Explain main.py" --dry-run
+callai -n codex -p "Explain main.py" --dry-run
+callai -n codex -m smart -p "Explain main.py" --dry-run
+CALLAI_MODEL=o3 callai -n codex -p "Explain main.py" --dry-run
+```
+
+```text
+claude -p --output-format json --model haiku -- 'Explain main.py'
+codex exec --json --skip-git-repo-check --model gpt-5-codex --ephemeral -- 'Explain main.py'
+codex exec --json --skip-git-repo-check --model gpt-5-codex --ephemeral -- 'Explain main.py'
+codex exec --json --skip-git-repo-check --model o3 --ephemeral -- 'Explain main.py'
+```
+
+Line by line:
+1. No `-n`, so `default_harness` chose claude-code. The top-level `model = "fast"` resolved through
+   the alias to `haiku`.
+2. codex's own `[harnesses.codex] model` beat the top-level one, and its `extra_args` were added.
+3. `-m smart` resolved to codex's entry in the `smart` alias, which is also `gpt-5-codex`.
+4. `CALLAI_MODEL` beat the config, and `o3` isn't an alias, so it passed through unchanged.
+
+## Precedence
+
+![Precedence: command-line flag, then CALLAI_* environment variable, then the harness's config table, then the top-level config, then the harness's default; model aliases are resolved after](../images/precedence.svg)
+
+The first source that sets a value wins:
+
+1. command-line flag;
+2. `CALLAI_*` environment variable;
+3. `[harnesses.<name>]` in the config file (`model` only);
+4. top level of the config file;
+5. the harness's own default.
+
+Model aliases are resolved after that.
+
+## Name models once with aliases
+
+An alias maps one name to a model per harness. `-m fast` means `haiku` for claude-code and
+`gpt-5-codex-mini` for codex. That is what makes `-m` useful with [fan-out](06-fan-out.md). A model that
+isn't an alias goes to the harness unchanged. An alias with no entry for the harness you're running is
+an error, so a wrong model is never sent:
+
+```text
+callai: error: model alias 'smart' has no entry for pi
+```
+
+## Typos are errors
+
+Unknown keys, unknown harness names and wrong types stop callai with exit 2, naming the file:
+
+```text
+callai: error: /home/me/.config/callai/config.toml: unknown key 'defualt_harness'; allowed: aliases, default_harness, harnesses, model, timeout
+```
+
+## Recap
+
+- Defaults come from flag › environment › config file › harness default.
+- `[harnesses.<name>]` sets a per-harness `binary`, `model` and `extra_args`.
+- `[aliases]` give one model name a meaning per harness.
+
+Reference: [Configuration](../reference/configuration.md)
+
+Next: [8. Use callai from Python](08-python-api.md) · Previous: [6. Ask several harnesses at once](06-fan-out.md)
+
+<!-- source: tutorial/08-python-api.md -->
+# 8. Use callai from Python
+
+`callai.run()` runs a harness from Python and returns the same result as `-o json`. An optional
+callback receives the stream events as they happen.
+
+**You'll need:** callai installed in your Python environment ([Installation](../getting-started/installation.md)).
+
+## Run and read the result
+
+```python
+import callai
+
+result = callai.run("claude-code", "Reply with exactly: pong")
+print(result.text, result.is_error, result.exit_code)
+print(result.session_id is not None, result.usage)
+```
+
+```text
+pong False 0
+True {'input_tokens': 11, 'output_tokens': 2}
+```
+
+`result` is a frozen `callai.Result` with the same fields as the `-o json` object. `result.to_dict()`
+gives that object.
+
+## Pass options
+
+The CLI's options become keyword arguments:
+
+```python
+result = callai.run(
+    "codex",
+    "Fix the failing test",
+    model="gpt-5-codex",
+    cwd="/path/to/repo",
+    timeout=600,
+    permission="auto",
+    system_prompt="Keep changes minimal.",
+    extra_args=["--ephemeral"],
+)
+```
+
+## Continue the conversation
+
+```python
+again = callai.run("claude-code", "And again?", resume=result.session_id)
+print(again.session_id == result.session_id)
+```
+
+```text
+True
+```
+
+## Watch events
+
+```python
+import callai
+
+def show(event):
+    print(event["type"], event.get("text", ""))
+
+callai.run("codex", "Reply with exactly: pong", on_event=show)
+```
+
+```text
+start 
+text pong
+result pong
+```
+
+`on_event` receives the same dicts that `-o stream-json` prints, in order, from a background thread.
+With it, the harness runs in its streaming mode.
+
+## Handle failures
+
+A harness that runs but fails returns a result with `is_error=True`. An exception means the run
+couldn't start or finish:
+
+```python
+import callai
+
+try:
+    callai.run("codex", "hi", binary="/nonexistent/codex")
+except callai.HarnessNotFound as exc:
+    print("not installed:", exc)
+
+result = callai.run("claude-code", "hi", model="not-a-real-model-xyz")
+print(result.is_error, result.exit_code)
+```
+
+```text
+not installed: harness binary '/nonexistent/codex' not found on PATH (needed for --name codex); install it: https://developers.openai.com/codex/cli
+True 1
+```
+
+| Exception | When |
+|---|---|
+| `callai.UsageError` | Bad argument, or an option the harness can't honour |
+| `callai.HarnessNotFound` | The binary isn't on `PATH` |
+| `callai.HarnessTimeout` | `timeout` expired; the harness was killed |
+| `callai.Interrupted` | Ctrl-C |
+
+All four are subclasses of `callai.CallaiError`.
+
+## Differences from the CLI
+
+`callai.run()` ignores `CALLAI_*` environment variables and the config file, so a call does the same
+thing on every machine. Pass everything explicitly. Model aliases are a CLI feature: `model=` is sent
+as is. Use `binary=` to run a specific executable.
+
+## Recap
+
+- `callai.run(harness, prompt, **options)` → `Result`, the same as `-o json`.
+- `on_event=` receives stream events; `resume=` continues a session.
+- Failed runs are results; exceptions mean the run couldn't happen.
+
+Reference: [Python API](../reference/python-api.md)
+
+Previous: [7. Set your defaults](07-defaults.md) · Up: [Tutorial](README.md) · Next: [How-to guides](../guides/README.md)
+
+<!-- source: guides/README.md -->
+# How-to guides
+
+Task-focused recipes. Each one stands alone, so read them in any order. They assume you know the basics
+from the [Tutorial](../tutorial/README.md).
+
+- [Call callai from an AI agent](use-from-an-ai-agent.md): run harnesses as sub-agents safely and parse what comes back.
+- [Use callai in scripts and CI](scripts-and-ci.md): stdin, timeouts, exit codes and JSON in shell pipelines.
+- [Compare harnesses side by side](compare-harnesses.md): one prompt, every harness, a model alias each.
+- [Build a live progress view](live-progress.md): turn stream events into a progress display.
+- [Test without a real model](test-without-a-model.md): fake harnesses for your tests, and real harnesses against a stub model.
+- [Add a new harness](add-a-harness.md): write an adapter and prove it with the conformance suite.
+
+<!-- source: guides/use-from-an-ai-agent.md -->
+# How to call callai from an AI agent
+
+Use this when an agent or orchestrator hands work to another coding agent (a "sub-agent") and needs a
+reliable answer and status back.
+
+## The safe invocation
+
+```bash
+callai -n codex -p "TASK" -o json --permission read-only --timeout 600 -C /path/to/repo < /dev/null
+```
+
+| Part | Why |
+|---|---|
+| `-o json` | One object to parse: `text`, `is_error`, `exit_code`, `session_id`. |
+| `--permission read-only` | Choose the level explicitly. The default is the harness's own, which for opencode, pi and hermes already allows writes and shell. Use `auto` when the sub-agent should edit files. |
+| `--timeout 600` | A stuck harness is killed, with everything it started (exit 124). |
+| `-C /path/to/repo` | The directory the sub-agent works in. |
+| `< /dev/null` | Your agent's stdin may be an open, silent pipe. callai would otherwise wait 3 seconds for it, then warn. |
+
+## Decide what happened
+
+Branch on the exit code first, then on the JSON:
+
+| Exit code | Meaning | What the agent should do |
+|---|---|---|
+| `0` | Success | Use `text`. |
+| `2` | Usage error; nothing ran | Read stderr. Fix the call (e.g. that harness can't do `read-only`). Don't retry as is. |
+| `124` | Timed out | Retry with a longer `--timeout` or a smaller task. |
+| `127` | Harness not installed | Pick another harness (`callai --list-harnesses -o json`). |
+| `130` | Interrupted | Stop. |
+| other | The harness failed | `is_error` is true. `text` is the reason (e.g. a bad model name). |
+
+## From Python
+
+```python
+import json
+import subprocess
+
+proc = subprocess.run(
+    ["callai", "-n", "codex", "-p", "Reply with exactly: pong", "-o", "json",
+     "--permission", "read-only", "--timeout", "600"],
+    stdin=subprocess.DEVNULL, capture_output=True, text=True,
+)
+if proc.returncode == 2:
+    raise ValueError(proc.stderr.strip().splitlines()[-1])   # the "callai: error: ..." line
+result = json.loads(proc.stdout) if proc.stdout else None
+print(proc.returncode, result and result["text"])
+```
+
+```text
+0 pong
+```
+
+Or skip the subprocess and use [`callai.run()`](../reference/python-api.md), which raises `UsageError`,
+`HarnessNotFound` or `HarnessTimeout` instead of returning those exit codes.
+
+## Patterns
+
+**Keep a sub-agent's context across steps:** save `session_id` and pass `--resume`:
+
+```bash
+callai -n claude-code -p "Read src/ and summarise the architecture" -o json < /dev/null > step1.json
+callai -n claude-code -p "Now list the riskiest module" --resume "$(jq -r .session_id step1.json)" -o json < /dev/null
+```
+
+**Get a second opinion:** run several harnesses on the same question and compare the answers:
+
+```bash
+callai -n claude-code/codex -p "Is this migration safe? $(cat migration.sql)" -o json < /dev/null \
+  | jq -r '.results[] | "\(.harness_name): \(.text)"'
+```
+
+**Follow long runs:** use `-o stream-json` and read line by line; see
+[Build a live progress view](live-progress.md).
+
+## Instructions to give your agent
+
+Paste this into the agent's instructions (e.g. `AGENTS.md` or `CLAUDE.md`) and adjust the harnesses and
+levels:
+
+```markdown
+## Delegating to other coding agents
+
+Use `callai` to run a prompt through another coding agent:
+
+    callai -n <claude-code|codex|opencode|pi|hermes|grok> -p "<task>" -o json --permission <read-only|auto> --timeout 900 -C <dir> < /dev/null
+
+- Parse stdout as JSON: `text` is the answer, `is_error` says whether it failed, `session_id` continues
+  the conversation with `--resume <id>`.
+- Exit 2 means the call was invalid and nothing ran: read stderr and fix the call. 124 = timed out,
+  127 = harness not installed.
+- Never use `--permission bypass` unless the user asked for it.
+- `callai --dry-run ...` shows the exact command without running it.
+```
+
+## Troubleshooting
+
+- **It waits 3 seconds before starting:** stdin is an open pipe. Add `< /dev/null`, or set
+  `CALLAI_STDIN_WAIT=0`.
+- **`--permission read-only` is refused:** opencode and hermes have no read-only mode. Pick another
+  harness, or accept their default knowingly.
+- **The answer is empty and `is_error` is true:** read `text` (the harness's error) and callai's
+  stderr, where the harness's own stderr is copied on failure.
+
+See also: [Use callai in scripts and CI](scripts-and-ci.md) · [Exit codes and errors](../reference/errors.md) · [Permissions](../concepts/permissions.md)
+
+<!-- source: guides/scripts-and-ci.md -->
+# How to use callai in scripts and CI
+
+Use this when a shell script or CI job calls a coding agent and must handle every outcome.
+
+## A robust script
+
+```bash
+#!/usr/bin/env bash
+set -uo pipefail
+
+out=$(callai -n codex -p "Reply with exactly: pong" -o json --timeout 900 < /dev/null)
+code=$?
+
+case $code in
+  0)   jq -r .text <<<"$out" ;;
+  2)   echo "callai usage error (nothing ran)" >&2; exit 2 ;;
+  124) echo "agent timed out" >&2; exit 1 ;;
+  127) echo "harness not installed" >&2; exit 1 ;;
+  *)   echo "agent failed: $(jq -r .text <<<"$out")" >&2; exit 1 ;;
+esac
+```
+
+```text
+pong
+```
+
+- **No `set -e`:** the script needs to see callai's exit code, not stop on it.
+- **`< /dev/null`:** CI runners often give jobs an open stdin. Without the redirect, callai waits 3
+  seconds for input, then warns and carries on.
+- **`--timeout`:** a stuck harness and everything it started are killed (exit 124), so the job doesn't
+  hang until the CI limit.
+
+## Feed files and diffs in
+
+```bash
+echo "def add(a, b): return a - b" | callai -n codex -p "Review this code" --dry-run
+```
+
+```text
+codex exec --json --skip-git-repo-check -- 'Review this code
+
+def add(a, b): return a - b'
+```
+
+Piped stdin is appended to the `-p` prompt after a blank line. To use only stdin as the prompt, use
+`-p -` or leave `-p` out; callai then waits for the pipe to close, however long that takes.
+
+## Keep the answer and the logs apart
+
+- stdout has the answer (or the JSON).
+- stderr has callai's warnings and errors, plus the harness's stderr when it fails.
+- `-v` copies the harness's stderr live on every run, which is useful in CI logs.
+
+```bash
+callai -n codex -p "…" -o json -v < /dev/null > result.json 2> agent.log
+```
+
+## Pin the behaviour
+
+- Use `--permission` explicitly in CI. `read-only` for review jobs, `auto` for fix-up jobs.
+- Set the model with `-m`, or with a config file committed to the repo and selected through
+  `CALLAI_CONFIG=ci/callai.toml`. An unknown key in that file fails the job (exit 2) instead of being
+  ignored.
+- `callai --dry-run …` in a CI step prints the exact harness command for the log.
+
+## Credentials
+
+callai never handles credentials: each harness reads its own (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`,
+`XAI_API_KEY`, a signed-in config, …). Provide them to the job the way that harness documents.
+
+See also: [Call callai from an AI agent](use-from-an-ai-agent.md) · [Exit codes and errors](../reference/errors.md) · [Configuration](../reference/configuration.md)
+
+<!-- source: guides/compare-harnesses.md -->
+# How to compare harnesses side by side
+
+Use this to ask several coding agents the same question and compare their answers, speed and token use.
+
+## 1. Give each harness a model under one name
+
+Model names differ per harness, so define an alias in `~/.config/callai/config.toml`:
+
+```toml
+[aliases]
+best = { claude-code = "opus", codex = "gpt-5-codex", opencode = "anthropic/claude-opus-4-1", pi = "anthropic/claude-opus-4-1", hermes = "anthropic/claude-opus-4-1", grok = "grok-4" }
+```
+
+Now `-m best` means the right model for each. An alias missing an entry for one of the harnesses in
+your run is an error, so you notice before anything runs.
+
+## 2. Run them all at once
+
+```bash
+callai -n all -m best -p "Explain what src/main.py does in two sentences" -o json --permission read-only < /dev/null > compare.json
+```
+
+`-n all` runs every installed harness at the same time and skips those that can't honour
+`--permission read-only` (opencode and hermes), saying so on stderr. To choose exactly which harnesses
+run, list them instead: `-n claude-code/codex/grok`.
+
+## 3. Tabulate
+
+```bash
+jq -r '.results[] | [.harness_name, (if .is_error then "FAILED" else "ok" end), .duration_ms, (.usage.input_tokens // "-"), (.usage.output_tokens // "-")] | @tsv' compare.json
+```
+
+```text
+claude-code	ok	932	11	2
+codex	ok	298	11	2
+pi	ok	545	11	2
+grok	ok	523	11	2
+```
+
+The columns are harness, status, duration in ms, input tokens and output tokens. Pipe through
+`column -t` to align them. These numbers come from the stub model, so yours will be much larger.
+
+And the answers:
+
+```bash
+jq -r '.results[] | "## \(.harness_name)\n\(.text)\n"' compare.json
+```
+
+## Variations
+
+- **Same harness, several models:** run one command per model. `-n` lists harnesses, not models.
+- **Watch them work:** `-o stream-json` interleaves every harness's events live, each tagged with
+  `harness_name`.
+- **Files may change:** harnesses that edit files share one working directory. Run them one after
+  another (`-n claude-code,codex`) and reset the tree between runs, or give each its own clone with
+  separate commands using `-C`.
+
+See also: [6. Ask several harnesses at once](../tutorial/06-fan-out.md) · [Model aliases](../reference/configuration.md#aliases)
+
+<!-- source: guides/live-progress.md -->
+# How to build a live progress view
+
+Use this to show what a coding agent is doing while it works: tool calls, their results and its
+messages. It works for a terminal, a log or a UI.
+
+## From Python, with `on_event`
+
+```python
+import callai
+
+
+def show(event):
+    kind = event["type"]
+    if kind == "start":
+        print(f"▶ {event['harness_name']} started")
+    elif kind == "tool_use":
+        print(f"  ⚙ {event['name']} {event['input']}")
+    elif kind == "tool_result":
+        status = "✗" if event["is_error"] else "✓"
+        print(f"  {status} {event['output'][:60]!r}")
+    elif kind == "text":
+        print(f"  💬 {event['text']}")
+    elif kind == "result":
+        print(f"■ done in {event['duration_ms']} ms, error={event['is_error']}")
+
+
+result = callai.run("claude-code", "Say hi.", permission="bypass", on_event=show)
+```
+
+```text
+▶ claude-code started
+  ⚙ Bash {'command': 'echo hi'}
+  ✓ 'hi'
+  💬 pong
+■ done in 834 ms, error=False
+```
+
+The callback runs on a background thread, once per event, in order. Keep it quick, or hand events to
+a queue.
+
+## From any language, with `-o stream-json`
+
+Read stdout line by line. Each line is one JSON object, flushed as it happens:
+
+```python
+import json
+import subprocess
+
+proc = subprocess.Popen(
+    ["callai", "-n", "codex", "-p", "Reply with exactly: pong", "-o", "stream-json"],
+    stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, text=True,
+)
+for line in proc.stdout:
+    event = json.loads(line)
+    print(event["type"], event.get("text", ""))
+proc.wait()
+print("exit", proc.returncode)
+```
+
+```text
+start 
+text pong
+result pong
+exit 0
+```
+
+## Things to handle
+
+- **Text arrives in pieces for some harnesses** (pi, grok) and as whole messages for others. Append
+  `text` events as they arrive; the final answer is in the `result` event.
+- **hermes has no event stream:** you get `start` and `result` only.
+- **No `result` event:** callai stopped the run (timeout 124, Ctrl-C 130). Use the exit code.
+- **Several harnesses:** with `-n a/b`, events from all of them interleave. Group by `harness_name`,
+  which every event carries in fan-out mode.
+
+See also: [4. Watch a run as it happens](../tutorial/04-streaming.md) · [Stream events reference](../reference/output.md#-o-stream-json)
+
+<!-- source: guides/test-without-a-model.md -->
+# How to test without a real model
+
+Use this to test code that calls callai without spending tokens or needing network access. There are
+two levels, depending on what you need to be real.
+
+## Level 1: a fake harness binary
+
+Your tests don't need a harness at all, just something that prints what a harness prints. Point callai
+at a script that replays recorded output:
+
+```bash
+cat > fake-codex <<'EOF'
+#!/bin/sh
+cat <<'OUT'
+{"type":"thread.started","thread_id":"t-1"}
+{"type":"item.completed","item":{"id":"item_0","type":"agent_message","text":"pong"}}
+{"type":"turn.completed","usage":{"input_tokens":11,"output_tokens":2}}
+OUT
+EOF
+chmod +x fake-codex
+```
+
+```python
+import callai
+
+result = callai.run("codex", "anything", binary="./fake-codex")
+print(result.text, result.session_id, result.usage)
+```
+
+```text
+pong t-1 {'input_tokens': 11, 'output_tokens': 2}
+```
+
+From the CLI, set the binary in a test config file:
+
+```toml
+# test-callai.toml, used with CALLAI_CONFIG=test-callai.toml
+[harnesses.codex]
+binary = "./fake-codex"
+```
+
+Real recorded outputs for every harness, including failures, are in
+[`conformance/parse/`](../../../conformance/parse/). Replaying one tests your code against exactly what
+that harness prints.
+
+## Level 2: real harnesses, stub model
+
+To test the harness too (its flags, tools and permissions), keep the real harness CLI and replace only
+the model. [`conformance/tools/stub_llm_server.py`](../../../conformance/tools/stub_llm_server.py) is a
+local stub that speaks the OpenAI Responses, OpenAI Chat Completions and Anthropic Messages APIs:
+
+```bash
+python3 conformance/tools/stub_llm_server.py --port 8765 --reply pong
+```
+
+Then point each harness at `http://127.0.0.1:8765`. For example, claude:
+
+```bash
+ANTHROPIC_BASE_URL=http://127.0.0.1:8765 ANTHROPIC_API_KEY=stub callai -n claude-code -m stub-model -p "Say hi."
+```
+
+```text
+pong
+```
+
+The other harnesses are configured through their provider settings. The exact settings for codex,
+opencode, pi, hermes and grok are in the
+[conformance README](../../../conformance/README.md), under "Recording without network or API keys".
+
+The stub can also script a tool call, so you can test what a permission level really allows:
+
+```bash
+python3 conformance/tools/stub_llm_server.py --port 8765 \
+  --tool-call '{"name": "Bash", "arguments": {"command": "echo hi"}}'
+```
+
+The stub returns that call to the first request that offers tools, and plain text once the harness
+sends the tool's result back. It replies with text, not a new tool call, to any request that already
+contains a tool result.
+
+> [!TIP]
+> Run claude against the stub with a clean environment (`env -i PATH="$PATH" HOME=…`), so your own
+> `ANTHROPIC_*` or `CLAUDE_*` variables don't leak in.
+
+See also: [Use callai in scripts and CI](scripts-and-ci.md) · [Python API](../reference/python-api.md)
+
+<!-- source: guides/add-a-harness.md -->
+# How to add a new harness
+
+Use this to teach callai a new coding-agent CLI. An adapter is one Python file with a few pure
+functions, plus conformance cases that prove it matches the real CLI.
+
+## 1. Learn the CLI from the CLI
+
+Read its `--help`. Docs and memory are hints; `--help` and real output are the truth. Find:
+
+- how to run one prompt non-interactively, and how to stop the prompt being read as a flag (`--`, or
+  one `--opt=PROMPT` argument);
+- its structured output mode (JSON, or JSON lines);
+- its model flag, permission or sandbox flags, system-prompt option, and session resume flags;
+- whether it reads stdin (callai gives it an empty one) and how it reports failure.
+
+## 2. Write the adapter
+
+Create `src/callai/adapters/<name>.py`:
+
+```python
+from ..request import Request
+from ..result import Completed, Result
+from .base import Adapter
+
+
+class MyAgent(Adapter):
+    name = "my-agent"                       # the -n value
+    binary = "myagent"                      # looked up on PATH
+    install_url = "https://example.com/install"
+
+    def build_argv(self, req: Request) -> list[str]:
+        argv = [self.binary, "run", "--json"]
+        if req.model:
+            argv += ["--model", req.model]
+        return [*argv, *req.extra_args, "--", req.prompt]   # prompt last, after --
+
+    def parse(self, completed: Completed, req: Request) -> Result:
+        ...                                  # turn stdout into a Result
+```
+
+| Method | Required | Job |
+|---|---|---|
+| `build_argv(req)` | yes | The exact command line. Raise `UsageError` for anything the CLI can't honour (fail closed). |
+| `parse(completed, req)` | yes | Stdout/stderr/exit code → `Result`. Take `is_error` from the CLI's own error signal. |
+| `stream_events(line, state)` | for `-o stream-json` | One stdout line → `text` / `tool_use` / `tool_result` events. |
+| `build_env(req)` | if needed | Environment variables, for settings the CLI only takes that way. |
+
+All four are pure: no I/O. That's what lets `--dry-run` and the tests work without the CLI installed.
+Map each `--permission` level to the CLI's flags, then prove it in step 4.
+
+## 3. Register it
+
+In `src/callai/adapters/__init__.py`, add the name to `HARNESS_NAMES` and register an instance next to
+the others:
+
+```python
+from .my_agent import MyAgent  # noqa: E402
+
+register(MyAgent())
+```
+
+## 4. Prove it with the conformance suite
+
+The suite in [`conformance/`](../../../conformance/README.md) is plain JSON, shared by every
+implementation of callai:
+
+- `argv/<name>/*.json`: request → the exact argv (or the expected refusal);
+- `parse/<name>/*.json` + recorded stdout/stderr: real output → the expected `Result` fields, and
+  optionally `expected_events`;
+- `cli/*.json`: end-to-end cases that replay recorded output through a fake binary.
+
+Record the parse fixtures from the real CLI. Without network access or API keys, run it against the
+[stub model](test-without-a-model.md#level-2-real-harnesses-stub-model) and label the fixture
+"STUB MODEL". Then check every permission level with
+`python conformance/tools/permission_probe.py --name <name> --model <model> --outside <dir>`, which
+runs scripted writes and shell commands and reports what really happened.
+
+## 5. Document it
+
+Add the harness to [Harnesses](../reference/harnesses.md), the permission table in
+[Permissions](../concepts/permissions.md), and the install table in
+[Installation](../getting-started/installation.md).
+
+See also: [Architecture](../concepts/architecture.md) · [Harnesses reference](../reference/harnesses.md)
+
+<!-- source: concepts/README.md -->
+# Concepts
+
+How callai works and why it behaves as it does. Read these when you want the reasoning; the
+[Reference](../reference/README.md) has the exact contracts.
+
+- [Architecture](architecture.md): adapters, the runner, and the one run path the CLI and the API share.
+- [Permissions](permissions.md): what each level allows per harness, and why callai fails closed.
+- [Normalised output](normalised-output.md): how six output formats become one result and one event stream.
+
+## Glossary
+
+| Term | Meaning |
+|---|---|
+| **harness** | A coding-agent CLI that callai drives: `claude-code`, `codex`, `opencode`, `pi`, `hermes`, `grok`. Chosen with `-n`. |
+| **harness name** | The `-n` value (`claude-code`), which isn't always the binary name (`claude`). |
+| **adapter** | The callai module for one harness. It turns a request into that harness's command line and the harness's output into a result. |
+| **request** | Everything about one run: harness, prompt, model, permission, session, extra args. |
+| **result** | The normalised outcome: the `-o json` object, or a `callai.Result` in Python. |
+| **event** | One line of `-o stream-json`: `start`, `text`, `tool_use`, `tool_result` or `result`. |
+| **permission level** | `default`, `read-only`, `auto` or `bypass`; translated per harness. |
+| **session** | A harness conversation, identified by `session_id`, that `--resume` continues. |
+| **fan-out** | One prompt through several harnesses: `-n a/b` (at the same time), `-n a,b` (one after another), `-n all`. |
+| **model alias** | A config name (`fast`) that maps to a different model per harness. |
+| **fail closed** | Refusing (exit 2) rather than running with more access than asked for, or silently ignoring an option. |
+| **stub model** | `conformance/tools/stub_llm_server.py`: a local fake model API for testing real harnesses offline. |
+
+<!-- source: concepts/architecture.md -->
+# Architecture
+
+callai is a thin translator. One adapter per harness builds the command line and reads the output back,
+and a single runner runs everything, for both the CLI and the Python API.
+
+![Architecture: the CLI and the Python API both create a Request; the harness's Adapter builds argv and env; runner.run executes the harness CLI in its own process group; the same Adapter turns stdout into stream events and a Result, which is printed or returned](../images/architecture.svg)
+
+The same flow in words:
+
+1. **Entry:** the CLI resolves flags, `CALLAI_*` variables and `config.toml`. The Python API takes
+   keyword arguments only. Both produce a `Request`, one per harness when fanning out.
+2. **Build:** the harness's adapter turns the request into a command line (`build_argv`) and any
+   environment variables (`build_env`). It does no I/O, which is why `--dry-run` can print the command
+   without the harness installed.
+3. **Run:** `runner.run` finds the binary on `PATH` and starts it in its own process group, with an
+   empty stdin. It reads stdout line by line as it arrives. On timeout it kills the whole group (exit
+   124); on Ctrl-C it sends SIGINT to the group (exit 130).
+4. **Read:** the same adapter turns each stdout line into stream events (`stream_events`) and the
+   finished output into a `Result` (`parse`).
+5. **Out:** the CLI prints text, JSON or stream events; the API returns the `Result`. `-o raw` skips
+   step 4 and prints the harness's own output.
+
+## The run, step by step
+
+![The life of one run: resolve settings, check options, read the prompt, build, find the binary, run, parse, print; with the exit code each step can stop with](../images/run-lifecycle.svg)
+
+| Step | Can stop with |
+|---|---|
+| 1. Resolve settings (flag › env › config › default) | exit 2: no harness, bad config, unknown flag |
+| 2. Check the options the harness can't honour, **before reading stdin** | exit 2 |
+| 3. Read the prompt (`-p`, plus piped stdin; 3 s wait on an idle pipe) | exit 2: no prompt |
+| 4. Build argv and env | `--dry-run` prints here, exit 0 |
+| 5. Find the binary | exit 127 |
+| 6. Run | exit 124 (timeout), 130 (Ctrl-C) |
+| 7. Parse | — |
+| 8. Print | the harness's exit code, or 1 if it failed but exited 0 |
+
+Step 2 comes before step 3 so that an impossible request fails at once, instead of after waiting for
+a slow pipe.
+
+## Why it's built this way
+
+- **One adapter file per harness, pure functions.** Adapters are tested without any harness installed.
+  A shared, language-agnostic [conformance suite](../../../conformance/README.md) pins their behaviour,
+  and later ports (TypeScript, Rust) will run the same suite.
+- **Always ask for structured output.** callai runs `claude --output-format json` even for `-o text`.
+  The answer is taken from structured data, never scraped from a terminal display. hermes has no JSON
+  mode, so its adapter strips the display lines instead.
+- **The prompt is always last** (after `--`, or as one `--opt=PROMPT` argument), so a prompt can't be
+  read as a flag.
+- **Empty stdin for the harness.** Some harnesses read stdin when it isn't a terminal. callai reads
+  stdin itself (into the prompt), so the harness gets an empty one.
+- **No runtime dependencies.** Standard library only: fast start-up and easy installation.
+
+## Code map
+
+| Module | Role |
+|---|---|
+| `callai/cli.py` | Flags, defaults, rendering, exit codes |
+| `callai/api.py` | `run()`, and `run_harness()`, the one run path |
+| `callai/fanout.py` | `-n a/b`, `-n a,b`, `-n all` |
+| `callai/runner.py` | Subprocess, process groups, timeouts, live output |
+| `callai/config.py` | `config.toml`, aliases |
+| `callai/request.py`, `result.py`, `errors.py` | The data types |
+| `callai/adapters/*.py` | One per harness, plus `base.py` |
+
+See also: [Add a new harness](../guides/add-a-harness.md) · [Harnesses reference](../reference/harnesses.md) · [Design notes](../../DESIGN.md)
+
+<!-- source: concepts/permissions.md -->
+# Permissions
+
+`--permission` gives every harness the same four levels, maps each to that harness's own controls,
+and refuses any level a harness can't honour.
+
+## The levels
+
+| Level | Intent | What callai adds |
+|---|---|---|
+| `default` | The harness's own default | Nothing |
+| `read-only` | Read and search, no writes, no shell | The harness's read-only mode or a read-only tool list |
+| `auto` | Edit files in the working directory without asking | Its "accept edits" mode, sandbox or a file-tool list |
+| `bypass` | Run every tool call without asking | Its "skip all permissions" flag, with a warning on stderr |
+
+## Verified behaviour
+
+Each cell was checked by running the real harness against a stub model that asked it to write a file
+and run a shell command, both inside and outside the working directory, and observing what happened:
+
+| Level | claude-code | codex | opencode | pi | grok | hermes |
+|---|---|---|---|---|---|---|
+| `read-only` | plan mode: no writes, no shell | read-only sandbox | **refused** | read tools only | read tools only | **refused** |
+| `auto` | edits inside the workspace | writes inside the workspace (sandboxed shell) | **refused** | file writes/edits, no shell | file writes/edits, no shell | file writes/edits, no shell |
+| `bypass` | everything | everything | everything | everything | everything | everything |
+
+The flags behind each cell are in the [Harnesses reference](../reference/harnesses.md).
+
+## The default isn't the same everywhere
+
+With `default`, **opencode, pi and hermes write files and run shell commands without asking**.
+claude-code, codex and grok ask, and since no one is there to answer, the call is refused. A refused
+tool call doesn't fail the run: the model is told the tool was refused and carries on. For unattended
+runs, always choose a level explicitly.
+
+## Failing closed
+
+When a harness has no way to honour a level, callai refuses with exit 2 before running anything:
+
+- **opencode** has no read-only mode: its `plan` agent still allows shell commands. It has no
+  "accept edits only" mode either: `--auto` approves everything.
+- **hermes** has no read-only toolset: its `file` toolset can write.
+
+The error message tells you what the harness *can* do (e.g. `-- --agent plan` for opencode), so you
+can choose it deliberately. The same rule covers other options: a `--system-prompt` that opencode
+can't take, or a `--continue` that hermes would apply to the wrong session.
+
+## grok and the working directory
+
+callai's `auto` for grok allows file writes and edits but no shell. grok writes them **anywhere** the
+user can write, not just in the working directory. (codex's `auto` is sandboxed to the workspace.)
+
+callai doesn't add grok's sandbox automatically. On Linux it needs
+[bubblewrap](https://github.com/containers/bubblewrap), and grok refuses to start without it, so adding it
+would break `auto` on machines that don't have it. Opt in:
+
+```bash
+sudo apt install -y bubblewrap                                                # Linux, once
+callai -n grok -p "Fix the failing test" --permission auto -- --sandbox workspace
+GROK_SANDBOX=workspace callai -n grok -p "Fix the failing test" --permission auto
+```
+
+All of grok's sandbox profiles, `read-only` and `strict` included, still allow writes inside the
+working directory. Use callai's `--permission read-only` when you need read-only.
+
+## Running as root
+
+claude refuses `bypass` when run as root, unless `IS_SANDBOX=1` is set. callai never sets it for you:
+setting it is your decision about your environment.
+
+See also: [3. Control what the agent may do](../tutorial/03-permissions.md) · [`--permission` reference](../reference/cli.md#--permission-level)
+
+<!-- source: concepts/normalised-output.md -->
+# Normalised output
+
+Every harness reports its answer, errors, session and token use differently. callai maps them all onto
+one result and one event stream, so code that reads callai's output works with any harness.
+
+## One result
+
+| Harness | Native output | Where the answer is | Error signal |
+|---|---|---|---|
+| claude-code | one JSON object | `result` | `is_error`, which can be true while `subtype` says `"success"` |
+| codex | JSON lines | the last `agent_message` item | a `turn.failed` event |
+| opencode | JSON lines | the text of the last step (earlier steps come before tool calls) | an `error` event or a non-zero exit; the reason is taken from stderr's ERROR log line |
+| pi | JSON lines | the last assistant message | `stopReason` of `error`, `aborted` or `length` (pi exits 0 even then) |
+| grok | one JSON object | `text` | `{"type": "error"}`, or `stopReason` other than `end_turn` |
+| hermes | plain text | stdout minus its display lines (those end in `\r\n`) | a non-zero exit, or no answer |
+
+callai's result has the same keys whichever harness answered. A value the harness doesn't report is
+`null` rather than left out. See the [output reference](../reference/output.md#-o-json) for every field.
+
+## Rules that make results comparable
+
+- **`is_error` comes from the harness's explicit error signal**, never from a status word that can
+  disagree with it.
+- **`usage.input_tokens` counts every prompt token, cache reads and writes included.** codex already
+  counts them that way. For claude, opencode, pi and grok, callai adds the cache counts back in, so the
+  numbers compare across harnesses.
+- **`model` is the model the harness says it used** (claude, pi, grok report it), otherwise the one
+  you asked for.
+- **`exit_code` is the harness's own.** callai's process exits with it, or with 1 when the harness
+  reported an error but exited 0.
+
+## One event stream
+
+`-o stream-json` maps each harness's native stream onto five event types:
+
+![How each harness's stream maps onto callai's start, tool_use, tool_result, text and result events](../images/stream-events.svg)
+
+| callai event | claude | codex | opencode | pi | grok |
+|---|---|---|---|---|---|
+| `text` | assistant `text` block | `agent_message` item | `text` part | `text_delta` | `text` |
+| `tool_use` | assistant `tool_use` block | `item.started` | `tool_use` part | `tool_execution_start` | `tool_call` |
+| `tool_result` | user `tool_result` block | `item.completed` | the same `tool_use` part, once finished | `tool_execution_end` | `tool_call_update` (completed or failed) |
+
+hermes has no event stream, so it gives only `start` and `result`. callai writes `start` and `result`
+itself; the adapters produce the rest.
+
+## What isn't normalised
+
+- **Tool names and inputs** are the harness's own (`Bash` and `{"command": …}` for claude,
+  `command_execution` for codex). Mapping them onto a common set would hide real differences.
+- **The text granularity** of events: whole messages for some harnesses, pieces for others.
+- **`-o raw`**, which is the harness's output, byte for byte.
+
+See also: [Output formats reference](../reference/output.md) · [Architecture](architecture.md)
+
+<!-- source: reference/README.md -->
+# Reference
+
+The complete, exact contracts, one page per surface. Look things up here. To learn, start with the
+[Tutorial](../tutorial/README.md).
+
+- [Command line](cli.md): every flag of `callai`, with defaults and examples.
+- [Python API](python-api.md): `callai.run()`, `Result` and the exceptions.
+- [Output formats](output.md): text, JSON, stream events, raw, dry run, `--list-harnesses` and fan-out shapes.
+- [Configuration](configuration.md): `config.toml`, environment variables and precedence.
+- [Harnesses](harnesses.md): exactly how callai invokes each harness, and what each supports.
+- [Exit codes and errors](errors.md): every exit code and error message, with its cause and fix.
+
+<!-- source: reference/cli.md -->
+# Command line reference
+
+Every flag `callai` accepts. This page is exhaustive; for a gentler introduction see the
+[Tutorial](../tutorial/README.md).
+
+```text
+callai -n HARNESS_NAME -p PROMPT [-m MODEL] [-o {text,json,stream-json,raw}] [-C CWD]
+       [--timeout SECS] [--permission {default,read-only,auto,bypass}] [--system-prompt S]
+       [--resume SESSION_ID | --continue] [--dry-run] [-v] [-- HARNESS_ARGS...]
+callai --list-harnesses [-o json]
+callai --version | --help
+```
+
+## Choosing the harness and prompt
+
+### `-n HARNESS_NAME`, `--name HARNESS_NAME`
+
+The harness to run: `claude-code`, `codex`, `opencode`, `pi`, `hermes` or `grok`. For several at once
+(fan-out):
+
+| Value | Runs |
+|---|---|
+| `codex` | one harness |
+| `codex/pi/grok` | all of them at the same time |
+| `codex,pi,grok` | all of them, one after another |
+| `all` | every installed harness, at the same time; harnesses that refuse the options are skipped with a note |
+
+Default: `CALLAI_HARNESS_NAME`, then `default_harness` in the config file. Neither set and no `-n`:
+exit 2. Mixed separators, empty or repeated names, and `all` inside a list are usage errors.
+[Fan-out output](output.md#fan-out).
+
+### `-p PROMPT`, `--prompt PROMPT`
+
+The prompt. `-c` and `--command` are aliases.
+
+| Form | Prompt |
+|---|---|
+| `-p TEXT` | `TEXT`. Piped stdin, if any, is appended after a blank line. |
+| `-p TEXT` with an idle stdin pipe | `TEXT`, after waiting `CALLAI_STDIN_WAIT` seconds (default 3) for input, then a warning. |
+| `-p -` | stdin, read until it closes. |
+| no `-p`, piped stdin | stdin, read until it closes. |
+
+Empty stdin counts as no input. No prompt at all: exit 2. The prompt always reaches the harness as one
+final argument, after `--` or as `--opt=PROMPT`, so it can't be read as a flag. grok prompts starting
+with `/` and pi prompts starting with `@` are refused, because those harnesses would run or attach
+them instead of sending them.
+
+## Model and output
+
+### `-m MODEL`, `--model MODEL`
+
+Model passed to the harness verbatim, unless it's an [alias](configuration.md#aliases) in the config
+file. Each harness has its own names (opencode and pi: `provider/model`). Default: `CALLAI_MODEL`, then
+`[harnesses.<name>] model`, then the top-level `model`, then the harness's own default.
+
+### `-o FORMAT`, `--output-format FORMAT`
+
+| Value | Prints |
+|---|---|
+| `text` (default) | The answer only. On failure, the harness's stderr and the error go to stderr. |
+| `json` | One normalised result object. [Schema](output.md#-o-json). |
+| `stream-json` | One event per line, as it happens. [Events](output.md#-o-stream-json). |
+| `raw` | The harness's own stdout and stderr, unchanged. Single harness only. |
+
+## Where and how long
+
+### `-C CWD`, `--cwd CWD`
+
+Working directory for the harness. Default: the current directory. Not a directory: exit 2.
+
+### `--timeout SECS`
+
+Kill the harness, and every process it started, after `SECS` seconds (it may be fractional). Exit 124.
+Default: `CALLAI_TIMEOUT`, then `timeout` in the config file, then no limit. In a fan-out, a timeout is
+that harness's failed result, and the others keep running.
+
+## Behaviour
+
+### `--permission LEVEL`
+
+`default` (add nothing), `read-only`, `auto` or `bypass`, translated to each harness's flags. A level a
+harness can't honour is refused (exit 2): opencode refuses `read-only` and `auto`, and hermes refuses
+`read-only`. `bypass` prints a warning on stderr. What each level really allows:
+[Permissions](../concepts/permissions.md). The exact flags: [Harnesses](harnesses.md).
+
+### `--system-prompt SYSTEM_PROMPT`
+
+Extra system instructions:
+
+| Harness | Passed as |
+|---|---|
+| claude-code | `--system-prompt S` (replaces claude's own) |
+| codex | `-c developer_instructions="S"` (a developer message) |
+| pi | `--system-prompt S` (replaces pi's own) |
+| hermes | the `HERMES_EPHEMERAL_SYSTEM_PROMPT` environment variable |
+| grok | `--system-prompt-override S` (replaces grok's own) |
+| opencode | refused (exit 2): `opencode run` has no such option |
+
+### `--resume SESSION_ID`
+
+Continue the session with this id (the `session_id` from `-o json` or a `result` event). Mapped per
+harness: [table](harnesses.md#session-flags). An id that is empty or starts with `-` is refused.
+
+### `--continue`
+
+Continue the harness's most recent session. There's no `-c` short form, because `-c` is `--command`.
+It can't be combined with `--resume`. hermes refuses it, because it only continues its interactive
+sessions: use `--resume`.
+
+## Inspecting
+
+### `--dry-run`
+
+Print the exact harness command line and exit 0, without running it or needing it installed. Text:
+one shell-quoted line, preceded by `NAME=value` for any environment variables callai would set. With
+`-o json` or `-o stream-json`: `{"argv": [...]}`, plus `"env": {...}` when there are any. In a fan-out:
+one line per harness, or `{"runs": [...]}`. [Shapes](output.md#--dry-run).
+
+### `-v`, `--verbose`
+
+Copy the harness's stderr to callai's stderr as it arrives. It's still captured for the result.
+Without `-v`, it's shown only when the run fails.
+
+### `--list-harnesses`
+
+List every supported harness: its binary (including one set in the config file), where it is on
+`PATH`, and its `--version`, or where to install it. With `-o json`, one object. [Shape](output.md#--list-harnesses).
+
+### `--version`, `-h` / `--help`
+
+Print callai's version or help and exit 0.
+
+## Passing arguments to the harness
+
+### `--`
+
+Everything after a bare `--` is passed to the harness unchanged, after callai's own flags and before
+the prompt. callai's flags must come before it. Not allowed with several harnesses (exit 2); use
+`[harnesses.<name>] extra_args` in the config file instead.
+
+```bash
+callai -n opencode -p "Explain main.py" --dry-run -- --agent build
+```
+
+```text
+opencode run --format json --print-logs --log-level ERROR --agent build -- Explain main.py
+```
+
+## Environment variables
+
+| Variable | Default for |
+|---|---|
+| `CALLAI_HARNESS_NAME` | `-n` |
+| `CALLAI_MODEL` | `-m` |
+| `CALLAI_TIMEOUT` | `--timeout` |
+| `CALLAI_STDIN_WAIT` | seconds to wait for piped input with `-p` (default `3`, `0` = don't wait) |
+| `CALLAI_CONFIG` | config file path (must exist) |
+
+Details: [Configuration](configuration.md#environment-variables).
+
+See also: [Exit codes and errors](errors.md) · [Output formats](output.md)
+
+<!-- source: reference/python-api.md -->
+# Python API reference
+
+Everything `import callai` gives you. Standard library only; Python 3.11+.
+
+```python
+import callai
+
+result = callai.run("codex", "Fix the failing test", permission="auto", timeout=600)
+```
+
+## `callai.run`
+
+```python
+callai.run(
+    harness_name: str,
+    prompt: str,
+    *,
+    model: str | None = None,
+    cwd: str | None = None,
+    timeout: float | None = None,
+    permission: str = "default",
+    system_prompt: str | None = None,
+    extra_args: Sequence[str] = (),
+    resume: str | None = None,
+    continue_session: bool = False,
+    binary: str | None = None,
+    on_event: Callable[[dict[str, Any]], None] | None = None,
+) -> Result
+```
+
+Run one prompt through one harness and return its normalised result. The call blocks until the
+harness finishes.
+
+| Parameter | Meaning | CLI equivalent |
+|---|---|---|
+| `harness_name` | `"claude-code"`, `"codex"`, `"opencode"`, `"pi"`, `"hermes"` or `"grok"` | `-n` |
+| `prompt` | The prompt, sent verbatim | `-p` |
+| `model` | Passed to the harness verbatim (no alias resolution) | `-m` |
+| `cwd` | Working directory for the harness | `-C` |
+| `timeout` | Seconds before the harness and its children are killed | `--timeout` |
+| `permission` | `"default"`, `"read-only"`, `"auto"` or `"bypass"` | `--permission` |
+| `system_prompt` | Extra system instructions, where supported | `--system-prompt` |
+| `extra_args` | Passed to the harness unchanged | after `--` |
+| `resume` | Session id to continue | `--resume` |
+| `continue_session` | Continue the harness's most recent session | `--continue` |
+| `binary` | Executable to run instead of the harness's usual one on `PATH` | `[harnesses.<name>] binary` |
+| `on_event` | Called with each [stream event](output.md#-o-stream-json) as it happens, from a background thread | `-o stream-json` |
+
+**Returns** a [`Result`](#callairesult). A harness that ran and failed (bad model, refused tool,
+non-zero exit) is a result with `is_error=True`, not an exception.
+
+**Raises** a subclass of [`CallaiError`](#exceptions) when the run couldn't start or finish.
+
+`run()` reads **no** `CALLAI_*` environment variables and **no** config file. There are no
+`bypass` warnings either: what you pass is what runs. With `on_event`, the harness runs in its
+streaming mode (claude `stream-json`, grok `streaming-json`). The last event is
+`{"type": "result", **result.to_dict()}`.
+
+## `callai.Result`
+
+A frozen dataclass: the same data as the [`-o json` object](output.md#-o-json).
+
+| Attribute | Type | Meaning |
+|---|---|---|
+| `harness_name` | `str` | Harness that ran |
+| `text` | `str` | Final answer, or the error message when `is_error` |
+| `exit_code` | `int` | The harness's exit code |
+| `is_error` | `bool` | Whether the run failed |
+| `model` | `str \| None` | Model the harness reports using, else the requested one |
+| `duration_ms` | `int \| None` | Wall-clock run time |
+| `session_id` | `str \| None` | For `resume=` |
+| `usage` | `dict[str, int] \| None` | `{"input_tokens", "output_tokens"}`; input counts cache reads and writes |
+| `cost_usd` | `float \| None` | Cost, when the harness reports it (claude, opencode, pi) |
+| `argv` | `tuple[str, ...]` | The exact command that ran |
+| `raw_stdout`, `raw_stderr` | `str` | The harness's own output, unparsed (not in `to_dict()`) |
+
+| Method | Returns |
+|---|---|
+| `to_dict()` | The `-o json` object as a new `dict` (key order as documented) |
+| `with_updates(**changes)` | A copy with some fields changed |
+
+## Exceptions
+
+| Class | Raised when | `exit_code` |
+|---|---|---|
+| `callai.CallaiError` | Base class of all below | 1 |
+| `callai.UsageError` | Invalid argument; an option the harness can't honour; unknown harness | 2 |
+| `callai.HarnessNotFound` | The binary isn't on `PATH` (or `binary=` doesn't exist) | 127 |
+| `callai.HarnessTimeout` | `timeout` expired; the process group was killed | 124 |
+| `callai.Interrupted` | Ctrl-C (SIGINT forwarded to the harness) | 130 |
+
+`str(exc)` is the message the CLI prints after `callai: error:`. Every message is listed in
+[Exit codes and errors](errors.md).
+
+```python
+import callai
+
+try:
+    result = callai.run("opencode", "Explain main.py", permission="read-only")
+except callai.UsageError as exc:
+    print("can't do that:", exc)
+```
+
+```text
+can't do that: --permission read-only: opencode has no read-only mode (its plan agent still allows shell commands); pass `-- --agent plan` yourself if that is acceptable
+```
+
+## Other names
+
+`callai.main(argv=None) -> int` runs the CLI in-process (what the `callai` command calls) and returns its
+exit code. The adapter registry (`callai.adapters`) is internal; see
+[Add a new harness](../guides/add-a-harness.md).
+
+See also: [8. Use callai from Python](../tutorial/08-python-api.md) · [Output formats](output.md)
+
+<!-- source: reference/output.md -->
+# Output formats reference
+
+Exactly what callai prints for each `-o` value, `--dry-run`, `--list-harnesses` and fan-out. JSON is
+always UTF-8, one object per line.
+
+## `-o text`
+
+The default. The answer (`text`) followed by a newline, on stdout. On failure, stdout is empty and
+stderr gets the harness's own stderr (unless `-v` already showed it) plus the error text, if it isn't
+already in that stderr. Exit code as in [Exit codes](errors.md#exit-codes).
+
+## `-o json`
+
+One object, the same for every harness:
+
+```json
+{
+  "harness_name": "codex",
+  "model": null,
+  "text": "pong",
+  "exit_code": 0,
+  "is_error": false,
+  "duration_ms": 6979,
+  "session_id": "01a19506-c5ee-7893-ab89-d0f6b04924a4",
+  "usage": {"input_tokens": 11, "output_tokens": 2},
+  "cost_usd": null,
+  "argv": ["codex", "exec", "--json", "--skip-git-repo-check", "--", "Reply with exactly: pong"]
+}
+```
+
+| Key | Type | Meaning |
+|---|---|---|
+| `harness_name` | string | The `-n` name that ran |
+| `model` | string \| null | Model the harness reports using; else the requested `-m` (after alias resolution); else `null` |
+| `text` | string | Final answer, or the error message when `is_error` |
+| `exit_code` | integer | The harness's exit code |
+| `is_error` | boolean | From the harness's explicit error signal, or a non-zero exit |
+| `duration_ms` | integer | Wall-clock time of the harness run |
+| `session_id` | string \| null | Use with `--resume` |
+| `usage` | object \| null | `input_tokens` (all prompt tokens, cache reads and writes included) and `output_tokens` |
+| `cost_usd` | number \| null | When the harness reports cost (claude, opencode, pi; codex, hermes and grok don't) |
+| `argv` | array of strings | The exact command that ran |
+
+Keys are always present, in this order. Unknown values are `null`. With a failure, stdout still has
+the object, and stderr has the harness's stderr.
+
+## `-o stream-json`
+
+One JSON object per line, flushed as each event happens:
+
+```json
+{"type": "start", "harness_name": "pi", "model": "stub/stub-model", "argv": ["pi", "--mode", "json", "--model", "stub/stub-model", "--", "Reply with exactly: pong"]}
+{"type": "text", "text": "pong"}
+{"type": "result", "harness_name": "pi", "model": "stub/stub-model", "text": "pong", "exit_code": 0, "is_error": false, "duration_ms": 1047, "session_id": "01a19507-07fe-7550-b76e-7a5f6b29a908", "usage": {"input_tokens": 11, "output_tokens": 2}, "cost_usd": 0, "argv": ["pi", "--mode", "json", "--model", "stub/stub-model", "--", "Reply with exactly: pong"]}
+```
+
+| `type` | Keys | Notes |
+|---|---|---|
+| `start` | `harness_name`, `model`, `argv` | First, once the binary is found. Not written if it isn't (exit 127). |
+| `text` | `text` | Assistant text: whole blocks (claude, codex, opencode) or pieces (pi, grok). |
+| `tool_use` | `id`, `name`, `input` | `name` and `input` are the harness's own (`Bash`, `{"command": "ls"}`). |
+| `tool_result` | `id`, `is_error`, `output` | `id` matches the `tool_use`. `is_error` for a failed or refused call. |
+| `result` | every `-o json` key | Always last, failures included. Missing only on timeout (124) or Ctrl-C (130). |
+
+hermes has no event stream: `start` and `result` only. In a [fan-out](#fan-out), every event also
+carries `harness_name`.
+
+## `-o raw`
+
+The harness's own stdout and stderr, byte for byte, without parsing. The exit code is the harness's. Not
+allowed with several harnesses.
+
+## `--dry-run`
+
+Text, one shell-quoted command per line, with environment variables first:
+
+```text
+HERMES_EPHEMERAL_SYSTEM_PROMPT='Be terse.' hermes chat -Q --source tool --query=hi
+```
+
+With `-o json` or `-o stream-json`:
+
+```json
+{"argv": ["hermes", "chat", "-Q", "--source", "tool", "--query=hi"], "env": {"HERMES_EPHEMERAL_SYSTEM_PROMPT": "Be terse."}}
+```
+
+`env` is present only when callai sets variables. With several harnesses: one text line each, or
+`{"runs": [{"harness_name": "…", "argv": […], "env": {…}}, …]}`.
+
+## `--list-harnesses`
+
+Text, one line per harness:
+
+```text
+claude-code  claude     2.1.316 (Claude Code)  /opt/node22/bin/claude
+```
+
+A missing harness shows `not installed (see <install URL>)`. If the binary prints no version,
+`version unknown` appears instead. With `-o json`:
+
+```json
+{"harnesses": [{"harness_name": "claude-code", "binary": "claude", "path": "/opt/node22/bin/claude", "version": "2.1.316 (Claude Code)", "install_url": "https://code.claude.com/docs/en/setup"}]}
+```
+
+(One entry per harness; `path` and `version` are `null` when it isn't installed.)
+
+## Fan-out
+
+With `-n a/b`, `-n a,b` or `-n all`, results come in the order given:
+
+| Format | Shape |
+|---|---|
+| text | `== name ==` then the answer, per harness. A failure is `== name (failed, exit N) ==` then its error text. |
+| json | `{"results": [<-o json object>, …]}` |
+| stream-json | Every harness's events interleaved as they happen, each with `harness_name` |
+| raw | Not allowed (exit 2) |
+
+A failed harness's own stderr goes to stderr after a `--- name stderr ---` line. Harnesses skipped
+by `-n all` are reported on stderr as `callai: skipping <name>: <reason>`.
+
+See also: [Normalised output](../concepts/normalised-output.md) · [Exit codes and errors](errors.md)
+
+<!-- source: reference/configuration.md -->
+# Configuration reference
+
+Every setting callai reads outside its flags: the config file and environment variables. The Python
+API ignores both.
+
+## Precedence
+
+For each setting, the first source that sets it wins:
+
+| Setting | 1. Flag | 2. Environment | 3. Config, per harness | 4. Config, top level | 5. Default |
+|---|---|---|---|---|---|
+| harness | `-n` | `CALLAI_HARNESS_NAME` | — | `default_harness` | none (error) |
+| model | `-m` | `CALLAI_MODEL` | `[harnesses.<name>] model` | `model` | the harness's own |
+| timeout | `--timeout` | `CALLAI_TIMEOUT` | — | `timeout` | no limit |
+| harness binary | — | — | `[harnesses.<name>] binary` | — | from `PATH` |
+| extra harness args | after `--` (added last) | — | `[harnesses.<name>] extra_args` (added first) | — | none |
+
+Model [aliases](#aliases) are resolved after the model is chosen.
+
+## The config file
+
+Location, first that applies:
+
+1. `$CALLAI_CONFIG`: must exist, or exit 2;
+2. `$XDG_CONFIG_HOME/callai/config.toml`;
+3. `~/.config/callai/config.toml`.
+
+The file is optional, and a missing default file is fine. It's TOML, read with Python's `tomllib`.
+Unknown keys, unknown harness names and wrong types stop callai (exit 2) with a message naming the file.
+
+```toml
+default_harness = "claude-code"
+model = "fast"
+timeout = 600
+
+[harnesses.codex]
+binary = "~/bin/codex"
+model = "gpt-5-codex"
+extra_args = ["--skip-git-repo-check"]
+
+[aliases]
+fast  = { claude-code = "haiku", codex = "gpt-5-codex-mini", opencode = "anthropic/claude-haiku-4-5" }
+smart = { claude-code = "opus",  codex = "gpt-5-codex" }
+```
+
+### `default_harness`
+
+String: one of `claude-code`, `codex`, `opencode`, `pi`, `hermes`, `grok`. Used when there's no `-n` and
+no `CALLAI_HARNESS_NAME`.
+
+### `model`
+
+String: the default model for every harness, usually an alias.
+
+### `timeout`
+
+Positive number of seconds.
+
+### `[harnesses.<name>]`
+
+One table per harness (the name must be a supported harness):
+
+| Key | Type | Meaning |
+|---|---|---|
+| `binary` | non-empty string | Executable to run instead of the usual binary from `PATH`; `~` is expanded. Also used by `--list-harnesses` and `-n all`. |
+| `model` | string | This harness's default model; beats the top-level `model`. |
+| `extra_args` | list of strings | Passed to the harness before any arguments after `--`. Also used in fan-out, where `--` isn't allowed. |
+
+### `[aliases]`
+
+Each key is an alias name; its value maps harness names to that harness's model:
+
+```toml
+[aliases]
+fast = { claude-code = "haiku", codex = "gpt-5-codex-mini" }
+```
+
+When the chosen model (from any source) is an alias name, it's replaced by the entry for the harness
+being run. A model that isn't an alias passes through unchanged. An alias without an entry for that
+harness is an error (`model alias 'fast' has no entry for pi`), rather than sending `fast` as a model
+name.
+
+## Environment variables
+
+| Variable | Value | Meaning |
+|---|---|---|
+| `CALLAI_HARNESS_NAME` | a harness name, `a/b`, `a,b` or `all` | Default for `-n` |
+| `CALLAI_MODEL` | model or alias | Default for `-m` |
+| `CALLAI_TIMEOUT` | positive number | Default for `--timeout`; anything else is exit 2 |
+| `CALLAI_STDIN_WAIT` | number ≥ 0 (default `3`) | With `-p`, how long to wait for input on an idle stdin pipe before warning and continuing |
+| `CALLAI_CONFIG` | path | Config file to use; must exist |
+| `CALLAI_LIVE`, `CALLAI_LIVE_TIMEOUT` | `all` or names; seconds | Test suite only: enable live smoke tests |
+
+An empty value counts as unset. `CALLAI_TOOL`, the old name of `CALLAI_HARNESS_NAME`, is rejected
+with a message telling you to rename it.
+
+Variables the **harnesses** read (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `XAI_API_KEY`, `HERMES_HOME`, …)
+pass through to them unchanged. callai adds only what an option needs, for example
+`HERMES_EPHEMERAL_SYSTEM_PROMPT` for hermes's `--system-prompt`.
+
+See also: [7. Set your defaults](../tutorial/07-defaults.md) · [Command line](cli.md)
+
+<!-- source: reference/harnesses.md -->
+# Harnesses reference
+
+Exactly how callai invokes each harness, and what each one supports. Every row was verified against the
+real CLI at the version shown. `--dry-run` prints the full command for any combination.
+
+## Summary
+
+| `-n` | Binary | Base command | Model flag | Output mode used | Verified with |
+|---|---|---|---|---|---|
+| `claude-code` | `claude` | `claude -p --output-format json -- PROMPT` | `--model M` | one JSON object | claude 2.1.314 (and live) |
+| `codex` | `codex` | `codex exec --json --skip-git-repo-check -- PROMPT` | `--model M` | JSON lines | codex-cli 0.166.0 |
+| `opencode` | `opencode` | `opencode run --format json --print-logs --log-level ERROR -- WORDS…` | `--model provider/model` | JSON lines | opencode 1.19.5 |
+| `pi` | `pi` | `pi --mode json -- PROMPT` | `--model provider/id` | JSON lines | pi 1.4.0 |
+| `hermes` | `hermes` | `hermes chat -Q --source tool --query=PROMPT` | `-m M` (provider from hermes's config) | plain text | hermes-agent 0.19.0 |
+| `grok` | `grok` | `grok --output-format json --single=PROMPT` | `--model M` | one JSON object | grok 1.0.70 |
+
+## Permission flags
+
+| `--permission` | claude-code | codex | opencode | pi | hermes | grok |
+|---|---|---|---|---|---|---|
+| `default` | — | — | — | — | — | — |
+| `read-only` | `--permission-mode plan` | `--sandbox read-only` | refused | `--tools read,grep,find,ls --no-mcp` | refused | `--tools read_file,grep,list_dir --disallowed-tools search_tool,use_tool` |
+| `auto` | `--permission-mode acceptEdits` | `--sandbox workspace-write` | refused | `--tools read,grep,find,ls,edit,write --no-mcp` | `-t file` | `--allow Write --allow Edit` |
+| `bypass` | `--dangerously-skip-permissions` | `--dangerously-bypass-approvals-and-sandbox` | `--auto` | — (pi's default already allows everything) | `--yolo` | `--permission-mode bypassPermissions` |
+
+What these really allow: [Permissions](../concepts/permissions.md#verified-behaviour).
+
+## Session flags
+
+| | claude-code | codex | opencode | pi | hermes | grok |
+|---|---|---|---|---|---|---|
+| `--resume ID` | `--resume ID` | `exec … resume ID -- PROMPT` | `--session ID` | `--session ID` | `--resume ID` | `--resume=ID` |
+| `--continue` | `--continue` | `exec … resume --last -- PROMPT` | `--continue` | `--continue` | refused | `--continue` |
+
+codex's `resume` subcommand rejects `--sandbox`. callai puts exec's own options (including `--sandbox`
+and `extra_args`) before `resume`, so they still apply to the resumed run.
+
+## Other options
+
+| | claude-code | codex | opencode | pi | hermes | grok |
+|---|---|---|---|---|---|---|
+| `--system-prompt S` | `--system-prompt S` | `-c developer_instructions="S"` | refused | `--system-prompt S` | env `HERMES_EPHEMERAL_SYSTEM_PROMPT` | `--system-prompt-override S` |
+| `-o stream-json` | `--output-format stream-json --verbose` | unchanged | unchanged | unchanged | unchanged (no events) | `--output-format streaming-json` |
+| Refused prompts | — | — | — | starts with `@` | — | starts with `/` |
+| Reports model used | yes | no | no | yes | no | yes |
+| Reports tokens / cost | yes / yes | yes / no | yes / yes | yes / yes | no / no | yes / no |
+
+## Per-harness notes
+
+### claude-code
+
+`claude -p` with JSON output. `is_error` comes from claude's `is_error`, not `subtype`: claude reports
+`"subtype": "success"` alongside `"is_error": true` for an unknown model. Run as root, claude refuses
+`bypass` unless you set `IS_SANDBOX=1`. Install: <https://code.claude.com/docs/en/setup>.
+
+### codex
+
+`codex exec --json`. The answer is the last `agent_message` item, and a failure is `turn.failed` or
+a non-zero exit. `error` items such as "model metadata not found" are warnings, not failures.
+`--skip-git-repo-check` lets codex run outside a git repository. Install: <https://developers.openai.com/codex/cli>.
+
+### opencode
+
+`opencode run --format json`. The prompt is passed as separate words, because opencode quotes any
+argument containing a space. `--print-logs --log-level ERROR` puts the real failure reason on stderr,
+which callai reports. In `opencode run`, `-p` means password and `-c` means continue: pass harness
+flags after `--` with care. Install: <https://opencode.ai/docs/>.
+
+### pi
+
+`pi --mode json`. pi exits 0 even when the model call fails, so failure comes from the assistant
+message's `stopReason`. A prompt starting with `@` would be read as a file to attach, so callai refuses
+it. Install: <https://pi.dev/docs/latest/quickstart>.
+
+### hermes
+
+`hermes chat -Q --source tool`, not `hermes -z`, which approves every tool call. The answer is stdout
+without hermes's display lines (those end in `\r\n`), and the session id comes from stderr.
+`--source tool` keeps callai's runs out of your session list, which is also why hermes `--continue`
+can't find them. It has no read-only toolset, and it reports no tokens or cost. Install:
+<https://hermes-agent.nousresearch.com/docs/>.
+
+### grok
+
+xAI's official Grok Build CLI (`@xai-official/grok`). The prompt goes in one final `--single=PROMPT`
+element, because `-p` has no `--` escape. A prompt starting with `/` is run as a slash command, even
+after spaces, so callai refuses it. A refused tool call exits 0 with `stopReason: cancelled`, which
+callai reports as an error (exit 1). Install: <https://x.ai/cli>.
+
+> [!WARNING]
+> `@vibe-kit/grok-cli` (superagent-ai) also installs a `grok` command with different flags. callai
+> doesn't support it.
+
+See also: [Add a new harness](../guides/add-a-harness.md) · [Installation](../getting-started/installation.md)
+
+<!-- source: reference/errors.md -->
+# Exit codes and errors reference
+
+Every exit code and every message callai prints, with its cause and fix. Errors appear on stderr as
+`callai: error: <message>`. Usage errors (exit 2) are preceded by the usage line. In Python, the same
+message is `str(exc)`.
+
+## Exit codes
+
+| Code | Meaning | Python |
+|---|---|---|
+| `0` | Success (every harness, in a fan-out) | — |
+| `1` | The harness reported an error but exited 0 | `result.is_error`, `result.exit_code == 0` |
+| `2` | [Usage error](#usage-errors): nothing ran | `UsageError` |
+| `124` | [Timed out](#timed-out) | `HarnessTimeout` |
+| `127` | [Harness not installed](#harness-not-installed) | `HarnessNotFound` |
+| `130` | [Interrupted](#interrupted) | `Interrupted` |
+| other | The harness's own failure code | `result.is_error`, `result.exit_code` |
+
+In a fan-out, the exit code is 0 if every harness succeeded, otherwise the first failure's in the order
+given.
+
+## Usage errors
+
+All exit 2, before any harness runs.
+
+### No harness given
+
+```text
+no harness given: use -n/--name, set CALLAI_HARNESS_NAME, or set default_harness in the config file
+```
+
+**Fix:** pass `-n`, or set a default ([Configuration](configuration.md)).
+
+### Unknown harness
+
+```text
+unknown harness '<name>'; choose from claude-code, codex, opencode, pi, hermes, grok
+```
+
+**Fix:** use one of the listed names. The names are callai's (`claude-code`), not the binary's
+(`claude`).
+
+### No prompt
+
+```text
+a prompt is required: use -p PROMPT or pipe it on stdin
+```
+
+**Cause:** no `-p`, and stdin was empty or a terminal. **Fix:** pass `-p`, or pipe the prompt in.
+
+### Permission level not supported
+
+```text
+--permission read-only: opencode has no read-only mode (its plan agent still allows shell commands); pass `-- --agent plan` yourself if that is acceptable
+--permission auto: opencode has no 'auto-approve edits only' mode (--auto approves everything); use --permission bypass or the default
+--permission read-only: hermes has no read-only toolset (its `file` toolset can write); use the default or --permission auto
+```
+
+**Cause:** the harness has no way to honour the level, and callai won't give it more access than you
+asked for. **Fix:** choose another level or another harness, or accept the alternative the message
+names. [Permissions](../concepts/permissions.md#failing-closed).
+
+### System prompt not supported
+
+```text
+opencode run has no system prompt option; drop --system-prompt
+```
+
+### Prompt would be run as a command
+
+```text
+grok runs a prompt starting with '/' as a slash command (e.g. /compact), even after leading spaces, and has no escape; start the prompt with other text
+pi reads a prompt starting with '@' as a file to attach, and has no escape; start the prompt with other text (e.g. a space)
+```
+
+**Fix:** start the prompt with other text.
+
+### `--resume` and `--continue`
+
+```text
+use --resume or --continue, not both
+--resume: empty session id
+--resume: a session id can't start with '-' (the harness would read it as an option)
+--continue: hermes only continues its most recent interactive session, not callai's runs; use --resume with the session_id callai reported
+```
+
+### Fan-out
+
+```text
+-n <value>: use '/' (parallel) or ',' (one after another), not both
+-n <value>: empty harness name
+-n <value>: <name> is listed twice
+-n <value>: 'all' can't be combined with other harnesses
+-o raw needs a single harness (several raw outputs can't be told apart)
+arguments after -- go to one harness; for several, set [harnesses.<name>] extra_args in the config file
+-n all: every installed harness refused these options
+<harness>: <reason>
+```
+
+The last form is a harness in an explicit list refusing an option. The whole call stops before
+anything runs. With `-n all`, the harness is skipped instead, and stderr says
+`callai: skipping <harness>: <reason>`.
+
+### Working directory
+
+```text
+--cwd '<dir>' is not a directory
+```
+
+### Environment variables
+
+```text
+CALLAI_TIMEOUT must be a positive number of seconds, got '<value>'
+CALLAI_STDIN_WAIT must be a number of seconds >= 0, got '<value>'
+CALLAI_TOOL was renamed to CALLAI_HARNESS_NAME; set that instead
+```
+
+### Config file
+
+Each of these is prefixed with the file's path (`<path>: …`):
+
+```text
+CALLAI_CONFIG points at <path>, which doesn't exist
+<path>: invalid TOML (<details>)
+<path>: cannot read config (<reason>)
+<path>: unknown key '<key>'; allowed: aliases, default_harness, harnesses, model, timeout
+<path>: [harnesses.<name>]: unknown key '<key>'; allowed: binary, extra_args, model
+<path>: default_harness: unknown harness '<name>'; choose from …
+<path>: [harnesses.<name>]: unknown harness; choose from …
+<path>: [harnesses.<name>]: binary must be a non-empty string
+<path>: [harnesses.<name>]: extra_args must be a list of strings
+<path>: timeout must be a positive number of seconds, got <value>
+<path>: model must be a string
+<path>: [aliases] <alias> must map harness names to models, e.g. { codex = 'o3' }
+<path>: [aliases] <alias>: unknown harness '<name>'; choose from …
+```
+
+**Fix:** correct the key or value the message names. Typos are errors on purpose, so a misspelled
+setting never silently does nothing.
+
+### Invalid arguments (Python API)
+
+The CLI's parser catches these first, so in practice you see them only from `callai.run()`:
+
+```text
+invalid output format '<value>'; choose from text, json, stream-json, raw
+invalid permission '<value>'; choose from default, read-only, auto, bypass
+timeout must be a positive number of seconds, got <value>
+prompt must be a string
+extra_args must be a sequence of strings
+resume must be a session id string
+```
+
+### Model alias without an entry
+
+```text
+model alias '<alias>' has no entry for <harness>
+```
+
+**Fix:** add the harness to the alias in `[aliases]`, or pass a model name with `-m`.
+
+## Harness not installed
+
+```text
+harness binary '<binary>' not found on PATH (needed for --name <harness>); install it: <install URL>
+-n all: none of the supported harnesses is installed (see callai --list-harnesses)
+```
+
+Exit 127. **Fix:** install the harness ([Installation](../getting-started/installation.md)), or point
+`[harnesses.<name>] binary` at it.
+
+## Timed out
+
+```text
+'<binary>' timed out after <secs>s and was killed
+```
+
+Exit 124. The harness and every process it started were killed. **Fix:** a larger `--timeout`, or a
+smaller task. In a fan-out, this becomes that harness's failed result (`== name (failed, exit 124) ==`),
+and the others carry on.
+
+## Interrupted
+
+```text
+interrupted
+```
+
+Exit 130, after Ctrl-C. callai forwards SIGINT to the harness's process group, waits briefly, then
+kills whatever is left. In a fan-out it stops every harness.
+
+## Warnings
+
+These go to stderr and don't change the exit code:
+
+```text
+callai: warning: no stdin data received in 3s, proceeding without it. Redirect stdin (< /dev/null) to skip the wait, or set CALLAI_STDIN_WAIT to wait longer.
+callai: warning: --permission bypass: <harness> will run every tool call without asking, including shell commands and writes outside the working directory.
+callai: skipping <harness>: <reason>
+```
+
+## When the harness fails
+
+The run happened, but the harness reported an error (bad model, refused tool, API error):
+- `is_error` is `true`, and `text` is the harness's reason;
+- the exit code is the harness's own, or 1 if it exited 0;
+- callai copies the harness's stderr to its own stderr.
+
+Example:
+
+```text
+There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it. Run --model to pick a different model.
+```
+
+See also: [Use callai in scripts and CI](../guides/scripts-and-ci.md) · [FAQ](../faq.md)
+
+<!-- source: faq.md -->
+# FAQ and troubleshooting
+
+Short answers to common questions and problems.
+
+## Questions
+
+### Which harness should I use?
+
+The one you already have access to. callai doesn't change what a harness can do; it gives them all the
+same interface. To compare them on your own task, run them all:
+[Compare harnesses side by side](guides/compare-harnesses.md).
+
+### Does callai send my code or prompts anywhere?
+
+No. callai talks only to the harness CLI on your machine. The harness talks to its model provider, as
+it would without callai.
+
+### Does callai handle API keys or sign-in?
+
+No. Each harness uses its own configuration (`ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `XAI_API_KEY`, a
+signed-in session, …), which callai passes through unchanged.
+
+### Does callai retry, rewrite prompts or add system instructions?
+
+No. It adds only what your flags ask for, and `--dry-run` shows exactly what will run. It doesn't
+retry, because a retry might repeat side effects the agent already had.
+
+### Why is `model` null in my JSON?
+
+You didn't pass `-m`, and the harness (codex, opencode, hermes) doesn't report which model it used.
+claude, pi and grok report it.
+
+### Why does `-n all --permission read-only` skip some harnesses?
+
+opencode and hermes have no read-only mode. Rather than run them with more access than you asked
+for, `-n all` skips them and says so on stderr. An explicit list (`-n codex/opencode`) stops with an
+error instead.
+
+### Can I run the same harness with two different models at once?
+
+Not with one `-n`: it lists harnesses, not models. Start two `callai` processes, or use
+`callai.run()` from two threads.
+
+### Is there a TypeScript or Rust version?
+
+Not yet. A TypeScript port is planned, and both will be checked against the same
+[conformance suite](../../conformance/README.md).
+
+## Problems
+
+### callai waits 3 seconds before starting
+
+Your stdin is a pipe with nothing on it, which happens when a script or agent runs callai. With `-p`,
+callai waits up to 3 seconds for piped input, then warns and continues. Add `< /dev/null`, or set
+`CALLAI_STDIN_WAIT=0`.
+
+### callai seems to hang
+
+- Without `-p` (or with `-p -`), the prompt *is* stdin, so callai waits until the pipe closes. Pass
+  `-p` or close the pipe.
+- The agent may simply be working. Use `-v` to see its stderr live, or `-o stream-json` to see its
+  steps. Use `--timeout` to put a limit on it.
+
+### callai hangs on Windows when run from a script
+
+On Windows, the 3-second stdin wait doesn't work on pipes, so `callai -p TEXT` with an open, silent
+stdin waits until the pipe closes. Give it an empty stdin that closes, e.g. in `cmd.exe`:
+`callai -n codex -p "…" < NUL`. (This case isn't tested on Windows yet.)
+
+### "harness binary … not found on PATH" (exit 127)
+
+Install the harness ([Installation](getting-started/installation.md)). If it's installed somewhere
+unusual, set `[harnesses.<name>] binary = "/path/to/it"`. `callai --list-harnesses` shows what callai
+finds.
+
+### "--permission read-only: … has no read-only mode" (exit 2)
+
+That harness can't honour the level ([Permissions](concepts/permissions.md#failing-closed)). Choose
+another harness, or the alternative the message suggests.
+
+### The answer is empty and `is_error` is true
+
+The harness ran but failed. `text` has its reason, and callai's stderr has the harness's own stderr.
+Common causes: a model name the harness doesn't know, a missing API key, or a tool call refused
+because you didn't grant the permission.
+
+### claude says `--dangerously-skip-permissions cannot be used with root/sudo privileges`
+
+You're running as root with `--permission bypass`. claude refuses that unless `IS_SANDBOX=1` is set in
+the environment. callai deliberately doesn't set it for you.
+
+### grok wrote a file outside my project
+
+grok's `auto` and `bypass` aren't limited to the working directory. Add its sandbox:
+`callai -n grok … --permission auto -- --sandbox workspace` (Linux needs bubblewrap). See
+[Permissions](concepts/permissions.md#grok-and-the-working-directory).
+
+### hermes `--continue` is refused
+
+hermes only continues interactive sessions, not the ones callai starts. Use
+`--resume <session_id>` from the previous run's JSON.
+
+### A harness updated and callai broke
+
+callai was verified against specific harness versions (see [Harnesses](reference/harnesses.md#summary)).
+Run `callai --dry-run …` and the harness's own `--help` to see what changed. From the project folder,
+`make install.<harness>` reinstalls the verified version. Please report what changed.
+
+See also: [Exit codes and errors](reference/errors.md)

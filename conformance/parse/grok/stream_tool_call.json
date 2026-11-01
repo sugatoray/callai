@@ -1,0 +1,43 @@
+{
+  "description": "grok 1.0.70 `--output-format streaming-json --permission-mode bypassPermissions`. STUB MODEL, recorded 2026-10-30 with a scripted shell tool call (stub_llm_server.py --tool-call) and canned reply 'pong'; session ids and the working directory redacted. The final `end` event is the `--output-format json` object without `text`; the answer is the `text` events joined.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "Say hi.",
+    "model": "stub-model",
+    "permission": "bypass",
+    "output_format": "stream-json"
+  },
+  "exit_code": 0,
+  "stdout_file": "stream_tool_call.stdout",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "model": "stub-model",
+    "session_id": "00000000-0000-4000-8000-000000000002",
+    "usage": {
+      "input_tokens": 22,
+      "output_tokens": 4
+    }
+  },
+  "expected_events": [
+    {
+      "type": "tool_use",
+      "id": "call_stub_1",
+      "name": "run_terminal_command",
+      "input": {
+        "command": "echo hi",
+        "description": "say hi"
+      }
+    },
+    {
+      "type": "tool_result",
+      "id": "call_stub_1",
+      "is_error": false,
+      "output": "hi\n"
+    },
+    {
+      "type": "text",
+      "text": "pong"
+    }
+  ]
+}

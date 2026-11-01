@@ -1,0 +1,19 @@
+{
+  "description": "hermes takes an extra system prompt only from the HERMES_EPHEMERAL_SYSTEM_PROMPT environment variable (or its config), so --system-prompt is set there and argv is unchanged. Verified against hermes-agent 0.19.0 (cli.py reads the variable before agent.system_prompt in config).",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "system_prompt": "Be terse."
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--query=hello"
+  ],
+  "expected_env": {
+    "HERMES_EPHEMERAL_SYSTEM_PROMPT": "Be terse."
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "description": "--permission bypass prints a one-line warning on stderr before running (DESIGN §7); the answer on stdout is unchanged.",
+  "args": [
+    "-n",
+    "codex",
+    "-p",
+    "Reply with exactly: pong",
+    "--permission",
+    "bypass"
+  ],
+  "fake_harnesses": {
+    "codex": {
+      "stdout_file": "../parse/codex/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "stderr_contains": [
+      "callai: warning: --permission bypass: codex will run every tool call without asking"
+    ]
+  }
+}

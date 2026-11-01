@@ -1,0 +1,14 @@
+{
+  "description": "Prompt starting with '-' after '--', exactly as pi's help recommends; whitespace and '--model=' text arrive verbatim (verified with the stub request log).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "-x  \"q\"\n--model=evil"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--",
+    "-x  \"q\"\n--model=evil"
+  ]
+}

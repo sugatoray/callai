@@ -1,0 +1,28 @@
+{
+  "description": "Canonical order: model, permission, system prompt, extra args, then -- prompt.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "do it",
+    "model": "o4",
+    "permission": "read-only",
+    "system_prompt": "S",
+    "extra_args": [
+      "--ephemeral"
+    ]
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--model",
+    "o4",
+    "--sandbox",
+    "read-only",
+    "-c",
+    "developer_instructions=\"S\"",
+    "--ephemeral",
+    "--",
+    "do it"
+  ]
+}

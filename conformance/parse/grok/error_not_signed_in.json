@@ -1,0 +1,16 @@
+{
+  "description": "grok 1.0.70 with an empty HOME and no XAI_API_KEY: the not-signed-in error, exit 1 (no network needed).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hi"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_not_signed_in.stdout",
+  "stderr_file": "error_not_signed_in.stderr",
+  "expected": {
+    "is_error": true,
+    "exit_code": 1,
+    "model": null,
+    "text": "Not signed in. To authenticate without a browser, run:\n  grok login --device-code\n\nAlternatively, set the XAI_API_KEY environment variable or run `grok login` on a machine with a browser."
+  }
+}

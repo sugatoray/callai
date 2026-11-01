@@ -1,0 +1,13 @@
+{
+  "description": "A '/' that is not at the start is plain text.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "explain src/main.py"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--single=explain src/main.py"
+  ]
+}

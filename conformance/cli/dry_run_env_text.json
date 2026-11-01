@@ -1,0 +1,8 @@
+{
+  "description": "--dry-run prints adapter env vars as shell assignments before the command, so the line can be pasted into a shell.",
+  "args": ["-n", "hermes", "-p", "hi", "--system-prompt", "Don't ramble.", "--dry-run"],
+  "expected": {
+    "exit_code": 0,
+    "stdout": "HERMES_EPHEMERAL_SYSTEM_PROMPT='Don'\"'\"'t ramble.' hermes chat -Q --source tool --query=hi\n"
+  }
+}

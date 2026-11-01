@@ -1,0 +1,16 @@
+{
+  "description": "raw also uses the JSON invocation; callai just prints the harness stdout unparsed.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "output_format": "raw"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--",
+    "hello"
+  ]
+}

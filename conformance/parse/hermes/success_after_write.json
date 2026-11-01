@@ -1,0 +1,16 @@
+{
+  "description": "STUB MODEL with a scripted write_file call. hermes-agent 0.19.0 with a `stub` provider in $HERMES_HOME/config.yaml. Even with -Q, hermes prints the write's diff preview on stdout before the answer; those lines go through prompt_toolkit and end in \\r\\n, the answer's in \\n.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "Write hi to f.txt",
+    "model": "stub-model"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_after_write.stdout",
+  "stderr_file": "success_after_write.stderr",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "session_id": "20260101_000000_000002"
+  }
+}

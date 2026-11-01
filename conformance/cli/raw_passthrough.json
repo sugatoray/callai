@@ -1,0 +1,32 @@
+{
+  "description": "-o raw prints the harness's stdout and stderr unchanged; the harness gets the adapter's argv.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "-o",
+    "raw"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout": "native output\n",
+      "stderr": "harness warning\n"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "native output\n",
+    "stderr_contains": [
+      "harness warning"
+    ],
+    "harness_argv": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--",
+      "hello"
+    ]
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "description": "Only the first '=' separates flag from value, so '=' inside the prompt is kept.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "a=b == c"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--single=a=b == c"
+  ]
+}

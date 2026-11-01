@@ -1,0 +1,21 @@
+{
+  "description": "Passthrough args (after callai's own --) go just before the prompt guard.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--max-turns",
+      "3"
+    ]
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--max-turns",
+    "3",
+    "--",
+    "hello"
+  ]
+}

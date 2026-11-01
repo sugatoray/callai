@@ -1,0 +1,13 @@
+{
+  "description": "No -p and empty stdin: usage error.",
+  "args": [
+    "-n",
+    "claude-code"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stderr_contains": [
+      "prompt"
+    ]
+  }
+}

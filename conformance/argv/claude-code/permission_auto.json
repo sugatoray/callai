@@ -1,0 +1,18 @@
+{
+  "description": "--permission auto maps to --permission-mode acceptEdits (DESIGN §7).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "permission": "auto"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--permission-mode",
+    "acceptEdits",
+    "--",
+    "hello"
+  ]
+}

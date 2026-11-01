@@ -1,0 +1,5 @@
+{"type":"thread.started","thread_id":"00000000-0000-4000-8000-000000000004"}
+{"type":"item.completed","item":{"id":"item_0","type":"error","message":"Model metadata for `not-a-real-model-xyz` not found. Defaulting to fallback metadata; this can degrade performance and cause issues."}}
+{"type":"turn.started"}
+{"type":"error","message":"The model `not-a-real-model-xyz` does not exist."}
+{"type":"turn.failed","error":{"message":"The model `not-a-real-model-xyz` does not exist."}}

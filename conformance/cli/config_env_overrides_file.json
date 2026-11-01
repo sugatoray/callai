@@ -1,0 +1,30 @@
+{
+  "description": "Precedence: CALLAI_HARNESS_NAME and CALLAI_MODEL beat the config file; -m beats CALLAI_MODEL (here CALLAI_MODEL is used because -m is absent).",
+  "args": [
+    "-p",
+    "hi",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "config": "default_harness = \"codex\"\nmodel = \"o3\"\n",
+  "env": {
+    "CALLAI_HARNESS_NAME": "claude-code",
+    "CALLAI_MODEL": "sonnet"
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--model",
+        "sonnet",
+        "--",
+        "hi"
+      ]
+    }
+  }
+}

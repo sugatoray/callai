@@ -1,0 +1,18 @@
+{
+  "description": "System prompt via `-c developer_instructions=<TOML string>` (verified with the stub model: arrives as a developer message).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "system_prompt": "Be terse."
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "-c",
+    "developer_instructions=\"Be terse.\"",
+    "--",
+    "hello"
+  ]
+}

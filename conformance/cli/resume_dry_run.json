@@ -1,0 +1,16 @@
+{
+  "description": "--resume SESSION_ID passes the harness's own resume flag (claude: --resume ID).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "and then?",
+    "--resume",
+    "S1",
+    "--dry-run"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout": "claude -p --output-format json --resume S1 -- 'and then?'\n"
+  }
+}

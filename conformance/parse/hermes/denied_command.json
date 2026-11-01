@@ -1,0 +1,15 @@
+{
+  "description": "STUB MODEL with a scripted `rm -rf` terminal call. hermes-agent 0.19.0 with a `stub` provider in $HERMES_HOME/config.yaml, default permissions: hermes asks for approval of dangerous commands, nobody can answer, so it denies on timeout (\\r\\n display line) and the turn continues.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "Delete the victim folder",
+    "model": "stub-model"
+  },
+  "exit_code": 0,
+  "stdout_file": "denied_command.stdout",
+  "stderr_file": "denied_command.stderr",
+  "expected": {
+    "text": "pong",
+    "is_error": false
+  }
+}

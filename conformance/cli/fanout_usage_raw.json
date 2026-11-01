@@ -1,0 +1,18 @@
+{
+  "description": "Usage error (exit 2): -o raw needs a single harness.",
+  "args": [
+    "-n",
+    "codex/pi",
+    "-p",
+    "hi",
+    "-o",
+    "raw"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "-o raw needs a single harness"
+    ]
+  }
+}

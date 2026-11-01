@@ -1,0 +1,61 @@
+{
+  "description": "-o stream-json with several harnesses: every event carries harness_name (here sequential, so the order is fixed).",
+  "args": [
+    "-n",
+    "codex,claude-code",
+    "-p",
+    "hi",
+    "-o",
+    "stream-json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/stream_tool_call.stdout"
+    },
+    "codex": {
+      "stdout_file": "../parse/codex/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_events": [
+      {
+        "type": "start",
+        "harness_name": "codex"
+      },
+      {
+        "type": "text",
+        "harness_name": "codex",
+        "text": "pong"
+      },
+      {
+        "type": "result",
+        "harness_name": "codex",
+        "text": "pong"
+      },
+      {
+        "type": "start",
+        "harness_name": "claude-code"
+      },
+      {
+        "type": "tool_use",
+        "harness_name": "claude-code",
+        "name": "Bash"
+      },
+      {
+        "type": "tool_result",
+        "harness_name": "claude-code"
+      },
+      {
+        "type": "text",
+        "harness_name": "claude-code",
+        "text": "pong"
+      },
+      {
+        "type": "result",
+        "harness_name": "claude-code",
+        "text": "pong"
+      }
+    ]
+  }
+}
