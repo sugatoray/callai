@@ -13,6 +13,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   from `sugatoray/devx` (`src/experiments/expt_callai`) at 0.8.0. Paths and links in the docs, the HTML docs
   builder and the project notes point at this repository; `pyproject.toml` gains `[project.urls]`.
 
+### Fixed
+
+- `test_old_tool_flag_is_gone` failed on Python 3.13, whose `--help` prints `-n, --name HARNESS_NAME`
+  instead of `-n HARNESS_NAME, --name HARNESS_NAME`. It now checks the parser's options directly. The
+  suite passes on 3.11 and 3.13.
+
 ## [0.8.0] - 2026-11-01
 
 The docs as one HTML page. No changes to callai itself; nothing here breaks existing use.

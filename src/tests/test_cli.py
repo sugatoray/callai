@@ -304,7 +304,13 @@ def test_old_tool_flag_is_gone(capsys):
     for flag in ("-t", "--tool"):
         with pytest.raises(SystemExit):
             cli.build_parser().parse_args([flag, "claude-code"])
-    assert "-n HARNESS_NAME, --name HARNESS_NAME" in cli.build_parser().format_help()
+    parser = cli.build_parser()
+    options = {opt for action in parser._actions for opt in action.option_strings}
+    assert {"-n", "--name"} <= options
+    assert not {"-t", "--tool"} & options
+    # Help layout differs by Python version ("-n HARNESS_NAME, --name HARNESS_NAME" before 3.13,
+    # "-n, --name HARNESS_NAME" from 3.13); both contain this.
+    assert "--name HARNESS_NAME" in parser.format_help()
 
 
 def test_stream_json_offered():
