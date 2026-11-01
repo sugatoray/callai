@@ -1,0 +1,16 @@
+{
+  "description": "Usage error (exit 2): 'all' can't be combined with other harnesses.",
+  "args": [
+    "-n",
+    "all/codex",
+    "-p",
+    "hi"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "'all' can't be combined with other harnesses"
+    ]
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "description": "-o json with several harnesses gives {\"results\": [...]}, one -o json object per harness in the order given.",
+  "args": [
+    "-n",
+    "codex,claude-code",
+    "-p",
+    "hi",
+    "-o",
+    "json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "codex": {
+      "stdout_file": "../parse/codex/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_contains": [
+      "{\"results\": [{\"harness_name\": \"codex\"",
+      "\"text\": \"pong\""
+    ]
+  }
+}

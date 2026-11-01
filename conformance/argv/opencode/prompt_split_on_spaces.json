@@ -1,0 +1,21 @@
+{
+  "description": "opencode wraps any message argument containing a space in literal quotes before sending it, so the prompt is split on single spaces and opencode's join(' ') rebuilds it exactly (verified with the stub model's request log).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "Reply with exactly: pong"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--",
+    "Reply",
+    "with",
+    "exactly:",
+    "pong"
+  ]
+}

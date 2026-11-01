@@ -1,0 +1,10 @@
+{
+  "description": "grok trims the prompt before checking for a slash command, so leading whitespace does not help.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "  /compact now"
+  },
+  "expected_error": {
+    "message_contains": "slash command"
+  }
+}

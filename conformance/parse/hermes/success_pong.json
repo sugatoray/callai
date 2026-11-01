@@ -1,0 +1,20 @@
+{
+  "description": "STUB MODEL. hermes-agent 0.19.0 with a `stub` provider in $HERMES_HOME/config.yaml: `hermes chat -Q --source tool -m stub-model '--query=Reply with exactly: pong'`.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "stub-model"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_pong.stdout",
+  "stderr_file": "success_pong.stderr",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "exit_code": 0,
+    "model": "stub-model",
+    "session_id": "20260101_000000_000001",
+    "usage": null,
+    "cost_usd": null
+  }
+}

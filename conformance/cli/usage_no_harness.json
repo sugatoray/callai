@@ -1,0 +1,17 @@
+{
+  "description": "No -n and no CALLAI_HARNESS_NAME / config default: usage error.",
+  "args": [
+    "-p",
+    "hi"
+  ],
+  "env": {
+    "CALLAI_HARNESS_NAME": ""
+  },
+  "expected": {
+    "exit_code": 2,
+    "stderr_contains": [
+      "no harness given",
+      "-n/--name"
+    ]
+  }
+}

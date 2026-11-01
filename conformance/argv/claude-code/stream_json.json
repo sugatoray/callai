@@ -1,0 +1,17 @@
+{
+  "description": "-o stream-json asks claude for its own event stream: `--output-format stream-json` needs `--verbose` with -p (claude 2.1.314 refuses it otherwise). The last line is the same result object as `--output-format json`.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "output_format": "stream-json"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "stream-json",
+    "--verbose",
+    "--",
+    "hello"
+  ]
+}

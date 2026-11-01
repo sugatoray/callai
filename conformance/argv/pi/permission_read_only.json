@@ -1,0 +1,18 @@
+{
+  "description": "pi has no approval prompts, only tool allowlists. read-only = pi's documented read-only tool set; --no-mcp because --tools keeps MCP tools (verified: the model is offered read, grep, find, ls only).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "permission": "read-only"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--tools",
+    "read,grep,find,ls",
+    "--no-mcp",
+    "--",
+    "hello"
+  ]
+}

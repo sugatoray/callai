@@ -1,0 +1,24 @@
+{
+  "description": "--timeout kills the harness and exits 124 (like GNU timeout).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "-o",
+    "raw",
+    "--timeout",
+    "0.5"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "sleep": 10
+    }
+  },
+  "expected": {
+    "exit_code": 124,
+    "stderr_contains": [
+      "timed out"
+    ]
+  }
+}

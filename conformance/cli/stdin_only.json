@@ -1,0 +1,24 @@
+{
+  "description": "No -p with piped stdin: stdin is the prompt (trailing newlines stripped).",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json"
+  ],
+  "stdin": "from stdin\n",
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "from stdin"
+      ]
+    }
+  }
+}

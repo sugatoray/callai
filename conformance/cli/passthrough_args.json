@@ -1,0 +1,30 @@
+{
+  "description": "Args after callai's own -- are passed to the harness.",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-p",
+    "hello",
+    "--",
+    "--max-turns",
+    "3"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--max-turns",
+        "3",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

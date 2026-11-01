@@ -1,0 +1,26 @@
+{
+  "description": "Harness error in text mode: nothing on stdout, error text and harness stderr on stderr, harness exit code kept.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "-m",
+    "not-a-real-model-xyz"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/error_unknown_model.stdout",
+      "stderr": "[claude-code:unrecognized_model]\n",
+      "exit_code": 1
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr_contains": [
+      "There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it.",
+      "unrecognized_model"
+    ]
+  }
+}

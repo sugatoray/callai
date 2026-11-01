@@ -1,0 +1,18 @@
+{
+  "description": "callai --resume S1 \u2192 claude `-p --resume ID` / `--continue` (claude 2.1.314 --help).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "resume": "S1"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--resume",
+    "S1",
+    "--",
+    "hello"
+  ]
+}

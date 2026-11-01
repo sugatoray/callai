@@ -1,0 +1,16 @@
+{
+  "description": "callai's own output format does not change the harness invocation (adapter always asks claude for JSON).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "output_format": "json"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--",
+    "hello"
+  ]
+}

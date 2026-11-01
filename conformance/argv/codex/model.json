@@ -1,0 +1,18 @@
+{
+  "description": "-m/--model passed through verbatim. Verified against `codex exec --help` (codex-cli 0.166.0).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "model": "gpt-5-codex"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--model",
+    "gpt-5-codex",
+    "--",
+    "hello"
+  ]
+}

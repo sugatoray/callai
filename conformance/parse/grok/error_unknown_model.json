@@ -1,0 +1,19 @@
+{
+  "description": "STUB MODEL. grok 1.0.70: `-m not-a-real-model-xyz`; grok checks the model against the provider's model list before calling it, prints a JSON error object on stdout and the same message on stderr, exit 1.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hi",
+    "model": "not-a-real-model-xyz"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_unknown_model.stdout",
+  "stderr_file": "error_unknown_model.stderr",
+  "expected": {
+    "text": "Couldn't set model 'not-a-real-model-xyz': Invalid params: \"unknown model id\". Run 'grok models' to see available models.",
+    "is_error": true,
+    "exit_code": 1,
+    "model": "not-a-real-model-xyz",
+    "session_id": null,
+    "usage": null
+  }
+}

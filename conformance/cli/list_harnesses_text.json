@@ -1,0 +1,23 @@
+{
+  "description": "--list-harnesses: one line per harness in a fixed order: name, binary, then version and path, or 'not installed (see INSTALL_URL)'. The version is the first non-empty line of `BINARY --version`.",
+  "args": [
+    "--list-harnesses"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout": "2.1.314 (Claude Code)\n"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_contains": [
+      "claude-code  claude     2.1.314 (Claude Code)  ",
+      "codex        codex      not installed (see https://",
+      "grok         grok       not installed"
+    ],
+    "harness_argv": [
+      "claude",
+      "--version"
+    ]
+  }
+}

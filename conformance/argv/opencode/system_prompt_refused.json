@@ -1,0 +1,11 @@
+{
+  "description": "`opencode run` has no system-prompt flag; refuse rather than silently drop it.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "system_prompt": "Be terse."
+  },
+  "expected_error": {
+    "message_contains": "system prompt"
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "description": "grok exits 0 when it refuses a tool call that needs approval and cancels the turn; callai must fail (exit 1) and show grok's reason.",
+  "args": [
+    "-n",
+    "grok",
+    "-p",
+    "Run: echo hi > shell.txt"
+  ],
+  "fake_harnesses": {
+    "grok": {
+      "stdout_file": "../parse/grok/error_permission_refused.stdout",
+      "stderr": "permission required: Execute `echo hi > shell.txt` was not run, as a headless run cannot ask for approval\n",
+      "exit_code": 0
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr_contains": [
+      "permission required"
+    ]
+  }
+}

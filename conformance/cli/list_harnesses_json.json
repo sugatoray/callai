@@ -1,0 +1,21 @@
+{
+  "description": "--list-harnesses -o json: {\"harnesses\": [{harness_name, binary, path, version, install_url}, ...]}; path and version are null when the binary isn't on PATH.",
+  "args": [
+    "--list-harnesses",
+    "-o",
+    "json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout": "2.1.314 (Claude Code)\n"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_contains": [
+      "{\"harnesses\": [{\"harness_name\": \"claude-code\", \"binary\": \"claude\", \"path\": \"",
+      "\"version\": \"2.1.314 (Claude Code)\"",
+      "{\"harness_name\": \"codex\", \"binary\": \"codex\", \"path\": null, \"version\": null"
+    ]
+  }
+}

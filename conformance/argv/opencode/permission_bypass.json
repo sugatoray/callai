@@ -1,0 +1,20 @@
+{
+  "description": "--permission bypass -> --auto ('auto-approve permissions that are not explicitly denied'). Verified against `opencode run --help` (opencode 1.19.5).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--auto",
+    "--",
+    "hello"
+  ]
+}

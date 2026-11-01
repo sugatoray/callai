@@ -1,0 +1,18 @@
+{
+  "description": "auto: file writes and edits without asking (`--allow Write` also covers search_replace edits); shell and other calls that need approval are refused, since a headless run cannot ask. Not --permission-mode acceptEdits: grok accepts that name but, headless, still refused a write (verified with a scripted tool call). Not --permission-mode auto: it lets grok's model-based safety check approve calls.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "permission": "auto"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--allow",
+    "Write",
+    "--allow",
+    "Edit",
+    "--single=hello"
+  ]
+}

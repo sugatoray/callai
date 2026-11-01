@@ -1,0 +1,15 @@
+{
+  "description": "-o stream-json needs no change: `pi --mode json` already streams JSONL events.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "output_format": "stream-json"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--",
+    "hello"
+  ]
+}

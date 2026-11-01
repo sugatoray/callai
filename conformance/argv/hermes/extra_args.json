@@ -1,0 +1,21 @@
+{
+  "description": "Passthrough args go before the prompt.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--max-turns",
+      "3"
+    ]
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--max-turns",
+    "3",
+    "--query=hello"
+  ]
+}

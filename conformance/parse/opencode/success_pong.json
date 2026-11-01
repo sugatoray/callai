@@ -1,0 +1,22 @@
+{
+  "description": "opencode 1.19.5 `run --format json --print-logs --log-level ERROR -- Reply with exactly: pong` against the local STUB MODEL (@ai-sdk/openai-compatible provider, chat completions). Real event stream, canned reply. Recorded 2026-10-30; session ids redacted.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "Reply with exactly: pong"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_pong.stdout",
+  "expected": {
+    "harness_name": "opencode",
+    "model": null,
+    "text": "pong",
+    "exit_code": 0,
+    "is_error": false,
+    "session_id": "ses_00000000000000000000000001",
+    "usage": {
+      "input_tokens": 11,
+      "output_tokens": 2
+    },
+    "cost_usd": 0
+  }
+}

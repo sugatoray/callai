@@ -1,0 +1,70 @@
+{
+  "description": "-o stream-json writes one JSON event per line: start, the harness's events mapped to text/tool_use/tool_result as they arrive, then result (the -o json object plus type). Replays a recorded claude stream.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "Say hi.",
+    "-o",
+    "stream-json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/stream_tool_call.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_events": [
+      {
+        "type": "start",
+        "harness_name": "claude-code",
+        "model": null,
+        "argv": [
+          "claude",
+          "-p",
+          "--output-format",
+          "stream-json",
+          "--verbose",
+          "--",
+          "Say hi."
+        ]
+      },
+      {
+        "type": "tool_use",
+        "id": "toolu_stub_1",
+        "name": "Bash",
+        "input": {
+          "command": "echo hi"
+        }
+      },
+      {
+        "type": "tool_result",
+        "id": "toolu_stub_1",
+        "is_error": false,
+        "output": "hi"
+      },
+      {
+        "type": "text",
+        "text": "pong"
+      },
+      {
+        "type": "result",
+        "harness_name": "claude-code",
+        "text": "pong",
+        "is_error": false,
+        "exit_code": 0,
+        "session_id": "00000000-0000-4000-8000-000000000001"
+      }
+    ],
+    "harness_argv": [
+      "claude",
+      "-p",
+      "--output-format",
+      "stream-json",
+      "--verbose",
+      "--",
+      "Say hi."
+    ]
+  }
+}

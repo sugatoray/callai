@@ -1,0 +1,18 @@
+{
+  "description": "Harness binary not on PATH: exit 127, message names the binary.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello"
+  ],
+  "env": {
+    "PATH": ""
+  },
+  "expected": {
+    "exit_code": 127,
+    "stderr_contains": [
+      "claude"
+    ]
+  }
+}

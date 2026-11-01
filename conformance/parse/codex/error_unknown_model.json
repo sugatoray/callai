@@ -1,0 +1,19 @@
+{
+  "description": "codex-cli 0.166.0 with -m not-a-real-model-xyz against the STUB MODEL (HTTP 404): turn.failed, exit 1. Recorded 2026-10-30; thread id redacted.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "not-a-real-model-xyz"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_unknown_model.stdout",
+  "expected": {
+    "harness_name": "codex",
+    "model": "not-a-real-model-xyz",
+    "text": "The model `not-a-real-model-xyz` does not exist.",
+    "exit_code": 1,
+    "is_error": true,
+    "session_id": "00000000-0000-4000-8000-000000000004",
+    "usage": null
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "description": "Double spaces, newlines, tabs, leading '-' and '--model=' tokens survive the split/join exactly (verified live); everything is after '--' so nothing parses as a flag.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "say \"hi\"  twice\n-x line2\t--model=evil end"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--",
+    "say",
+    "\"hi\"",
+    "",
+    "twice\n-x",
+    "line2\t--model=evil",
+    "end"
+  ]
+}

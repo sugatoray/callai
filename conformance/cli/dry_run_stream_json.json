@@ -1,0 +1,26 @@
+{
+  "description": "--dry-run with -o stream-json prints the same JSON object as -o json (one line).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hello",
+    "--dry-run",
+    "-o",
+    "stream-json"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "stream-json",
+        "--verbose",
+        "--",
+        "hello"
+      ]
+    }
+  }
+}

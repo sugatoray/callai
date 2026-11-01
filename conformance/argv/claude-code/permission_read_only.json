@@ -1,0 +1,18 @@
+{
+  "description": "--permission read-only maps to --permission-mode plan (DESIGN §7).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "permission": "read-only"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--permission-mode",
+    "plan",
+    "--",
+    "hello"
+  ]
+}

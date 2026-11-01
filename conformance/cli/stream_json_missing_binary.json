@@ -1,0 +1,21 @@
+{
+  "description": "When the harness binary isn't found, nothing is written to stdout (not even start): exit 127 and the message on stderr.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "-o",
+    "stream-json"
+  ],
+  "env": {
+    "PATH": ""
+  },
+  "expected": {
+    "exit_code": 127,
+    "stdout": "",
+    "stderr_contains": [
+      "claude"
+    ]
+  }
+}

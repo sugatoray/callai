@@ -1,0 +1,41 @@
+{
+  "description": "A failed run still ends with a result event (is_error true); the harness's stderr is shown, exit 1 as with -o json. Replays grok refusing a write headless (it exits 0).",
+  "args": [
+    "-n",
+    "grok",
+    "-p",
+    "Say hi.",
+    "-o",
+    "stream-json"
+  ],
+  "fake_harnesses": {
+    "grok": {
+      "stdout_file": "../parse/grok/stream_permission_refused.stdout",
+      "stderr_file": "../parse/grok/stream_permission_refused.stderr"
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout_events": [
+      {
+        "type": "start"
+      },
+      {
+        "type": "tool_use",
+        "name": "write"
+      },
+      {
+        "type": "tool_result",
+        "is_error": true
+      },
+      {
+        "type": "result",
+        "is_error": true,
+        "exit_code": 0
+      }
+    ],
+    "stderr_contains": [
+      "permission required"
+    ]
+  }
+}

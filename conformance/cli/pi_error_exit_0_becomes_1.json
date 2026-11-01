@@ -1,0 +1,24 @@
+{
+  "description": "pi exits 0 on a model error; callai must still fail (exit 1) and print the error on stderr.",
+  "args": [
+    "-n",
+    "pi",
+    "-p",
+    "hi",
+    "-m",
+    "stub/not-a-real-model-xyz"
+  ],
+  "fake_harnesses": {
+    "pi": {
+      "stdout_file": "../parse/pi/error_unknown_model.stdout",
+      "exit_code": 0
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr_contains": [
+      "does not exist"
+    ]
+  }
+}

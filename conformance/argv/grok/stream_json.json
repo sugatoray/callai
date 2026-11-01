@@ -1,0 +1,14 @@
+{
+  "description": "-o stream-json uses grok's `--output-format streaming-json` (JSONL; the final `end` event is the json-mode object without `text`). Verified against grok 1.0.70.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "output_format": "stream-json"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "streaming-json",
+    "--single=hello"
+  ]
+}

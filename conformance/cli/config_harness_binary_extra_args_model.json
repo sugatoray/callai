@@ -1,0 +1,35 @@
+{
+  "description": "[harnesses.<name>]: binary replaces the executable, extra_args go before args given after --, model is the harness's default model.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "--",
+    "--max-turns",
+    "2"
+  ],
+  "config": "[harnesses.claude-code]\nbinary = \"claude-custom\"\nmodel = \"opus\"\nextra_args = [\"--verbose\"]\n",
+  "fake_harnesses": {
+    "claude-custom": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "claude-custom",
+      "-p",
+      "--output-format",
+      "json",
+      "--model",
+      "opus",
+      "--verbose",
+      "--max-turns",
+      "2",
+      "--",
+      "hi"
+    ]
+  }
+}

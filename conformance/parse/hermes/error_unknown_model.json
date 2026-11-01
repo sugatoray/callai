@@ -1,0 +1,17 @@
+{
+  "description": "STUB MODEL. hermes-agent 0.19.0 with a `stub` provider in $HERMES_HOME/config.yaml: `-m not-a-real-model-xyz`; the stub's 404 becomes hermes's answer text on stdout, exit 1.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hi",
+    "model": "not-a-real-model-xyz"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_unknown_model.stdout",
+  "stderr_file": "error_unknown_model.stderr",
+  "expected": {
+    "text": "HTTP 404: The model `not-a-real-model-xyz` does not exist.",
+    "is_error": true,
+    "exit_code": 1,
+    "model": "not-a-real-model-xyz"
+  }
+}

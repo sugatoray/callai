@@ -1,0 +1,28 @@
+{
+  "description": "Canonical order: model, permission, extra args, then -- prompt words.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "do it",
+    "model": "stub/stub-model",
+    "permission": "bypass",
+    "extra_args": [
+      "--pure"
+    ]
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--model",
+    "stub/stub-model",
+    "--auto",
+    "--pure",
+    "--",
+    "do",
+    "it"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "description": "callai --continue \u2192 claude `-p --resume ID` / `--continue` (claude 2.1.314 --help).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "continue_session": true
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--continue",
+    "--",
+    "hello"
+  ]
+}

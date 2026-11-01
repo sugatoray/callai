@@ -1,0 +1,31 @@
+{
+  "description": "A harness without an event stream (hermes) gets only start and result.",
+  "args": [
+    "-n",
+    "hermes",
+    "-p",
+    "hi",
+    "-o",
+    "stream-json"
+  ],
+  "fake_harnesses": {
+    "hermes": {
+      "stdout_file": "../parse/hermes/success_pong.stdout",
+      "stderr_file": "../parse/hermes/success_pong.stderr"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_events": [
+      {
+        "type": "start",
+        "harness_name": "hermes"
+      },
+      {
+        "type": "result",
+        "text": "pong",
+        "is_error": false
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "description": "A session id starting with '-' is refused: it would be read as an option by the harness (exit 2).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "--resume=-x"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "can't start with '-'"
+    ]
+  }
+}

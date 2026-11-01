@@ -1,0 +1,17 @@
+{
+  "description": "callai --resume S1 \u2192 pi `--session ID` (session file or partial UUID) / `--continue` (1.4.0 --help).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "resume": "S1"
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--session",
+    "S1",
+    "--",
+    "hello"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "callai --resume S1 \u2192 opencode run `--session ID` / `--continue` (1.19.5 --help).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "resume": "S1"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--session",
+    "S1",
+    "--",
+    "hello"
+  ]
+}

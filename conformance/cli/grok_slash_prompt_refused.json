@@ -1,0 +1,22 @@
+{
+  "description": "A prompt that grok would run as a slash command is a usage error (exit 2); grok is never started.",
+  "args": [
+    "-n",
+    "grok",
+    "-p",
+    "/compact"
+  ],
+  "fake_harnesses": {
+    "grok": {
+      "stdout": "",
+      "exit_code": 0
+    }
+  },
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "slash command"
+    ]
+  }
+}

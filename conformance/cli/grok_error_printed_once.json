@@ -1,0 +1,25 @@
+{
+  "description": "grok writes its error to both stdout (JSON) and stderr; callai exits 1 and shows the message on stderr once.",
+  "args": [
+    "-n",
+    "grok",
+    "-p",
+    "hi",
+    "-m",
+    "not-a-real-model-xyz"
+  ],
+  "fake_harnesses": {
+    "grok": {
+      "stdout_file": "../parse/grok/error_unknown_model.stdout",
+      "stderr": "Error: Couldn't set model 'not-a-real-model-xyz': Invalid params: \"unknown model id\". Run 'grok models' to see available models.\n",
+      "exit_code": 1
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout": "",
+    "stderr_contains": [
+      "unknown model id"
+    ]
+  }
+}

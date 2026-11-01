@@ -1,0 +1,18 @@
+{
+  "description": "Passthrough args go before the prompt guard.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "extra_args": [
+      "--no-session"
+    ]
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--no-session",
+    "--",
+    "hello"
+  ]
+}

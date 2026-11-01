@@ -1,0 +1,15 @@
+{
+  "description": "Minimal request: print mode, JSON output requested from the harness, prompt last after --.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--",
+    "hello"
+  ]
+}

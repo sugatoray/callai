@@ -1,0 +1,16 @@
+{
+  "description": "Usage error (exit 2): codex is listed twice.",
+  "args": [
+    "-n",
+    "codex,codex",
+    "-p",
+    "hi"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "codex is listed twice"
+    ]
+  }
+}

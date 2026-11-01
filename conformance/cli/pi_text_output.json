@@ -1,0 +1,29 @@
+{
+  "description": "pi end-to-end: -o text prints the final assistant text (recorded pi output replayed by a fake).",
+  "args": [
+    "-n",
+    "pi",
+    "-p",
+    "Reply with exactly: pong",
+    "-m",
+    "stub/stub-model"
+  ],
+  "fake_harnesses": {
+    "pi": {
+      "stdout_file": "../parse/pi/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "pi",
+      "--mode",
+      "json",
+      "--model",
+      "stub/stub-model",
+      "--",
+      "Reply with exactly: pong"
+    ]
+  }
+}

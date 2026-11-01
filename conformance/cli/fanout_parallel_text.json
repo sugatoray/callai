@@ -1,0 +1,21 @@
+{
+  "description": "-n a/b/c runs the harnesses at the same time; output still comes in the order given, once all have finished.",
+  "args": [
+    "-n",
+    "claude-code/codex",
+    "-p",
+    "Reply with exactly: pong"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "codex": {
+      "stdout_file": "../parse/codex/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "== claude-code ==\npong\n== codex ==\npong\n"
+  }
+}

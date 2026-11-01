@@ -1,0 +1,18 @@
+{
+  "description": "--permission auto -> --sandbox workspace-write (codex 0.166 has no --full-auto). Verified against `codex exec --help` (codex-cli 0.166.0).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "permission": "auto"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--sandbox",
+    "workspace-write",
+    "--",
+    "hello"
+  ]
+}

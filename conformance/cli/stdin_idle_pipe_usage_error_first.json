@@ -1,0 +1,16 @@
+{
+  "description": "No -p, so the prompt must come from stdin, which stays open and silent. Usage errors that don't depend on the prompt are reported before stdin is read, so they aren't stuck behind it.",
+  "args": [
+    "-n",
+    "hermes",
+    "--permission",
+    "read-only"
+  ],
+  "stdin_open": true,
+  "expected": {
+    "exit_code": 2,
+    "stderr_contains": [
+      "--permission read-only"
+    ]
+  }
+}

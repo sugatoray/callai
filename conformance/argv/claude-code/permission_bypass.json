@@ -1,0 +1,17 @@
+{
+  "description": "--permission bypass maps to --dangerously-skip-permissions (DESIGN §7).",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--dangerously-skip-permissions",
+    "--",
+    "hello"
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "description": "--dry-run with several harnesses prints each command line on its own line, in order.",
+  "args": [
+    "-n",
+    "claude-code/codex",
+    "-p",
+    "hi",
+    "--dry-run"
+  ],
+  "expected": {
+    "exit_code": 0,
+    "stdout": "claude -p --output-format json -- hi\ncodex exec --json --skip-git-repo-check -- hi\n"
+  }
+}

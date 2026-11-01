@@ -1,0 +1,18 @@
+{
+  "description": "-m/--model is passed through verbatim (provider comes from hermes's config).",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "model": "stub-model"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "-m",
+    "stub-model",
+    "--query=hello"
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "description": "codex end-to-end: default -o text prints only the agent's final message (recorded codex output replayed by a fake).",
+  "args": [
+    "-n",
+    "codex",
+    "-p",
+    "Reply with exactly: pong"
+  ],
+  "fake_harnesses": {
+    "codex": {
+      "stdout_file": "../parse/codex/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "codex",
+      "exec",
+      "--json",
+      "--skip-git-repo-check",
+      "--",
+      "Reply with exactly: pong"
+    ]
+  }
+}

@@ -1,0 +1,40 @@
+{
+  "description": "codex-cli 0.166.0 `exec --json` with --dangerously-bypass-approvals-and-sandbox. STUB MODEL, recorded 2026-10-30 with a scripted shell tool call (stub_llm_server.py --tool-call) and canned reply 'pong'; session ids and the working directory redacted. The `error` item is codex's model-metadata warning, not a failure.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "Say hi.",
+    "model": "stub-model",
+    "permission": "bypass",
+    "output_format": "stream-json"
+  },
+  "exit_code": 0,
+  "stdout_file": "stream_tool_call.stdout",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "usage": {
+      "input_tokens": 22,
+      "output_tokens": 4
+    }
+  },
+  "expected_events": [
+    {
+      "type": "tool_use",
+      "id": "item_1",
+      "name": "command_execution",
+      "input": {
+        "command": "/bin/bash -lc 'echo hi'"
+      }
+    },
+    {
+      "type": "tool_result",
+      "id": "item_1",
+      "is_error": false,
+      "output": "hi\n"
+    },
+    {
+      "type": "text",
+      "text": "pong"
+    }
+  ]
+}

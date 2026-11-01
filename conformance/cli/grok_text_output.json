@@ -1,0 +1,28 @@
+{
+  "description": "grok end-to-end: -o text prints the answer (recorded grok output replayed by a fake).",
+  "args": [
+    "-n",
+    "grok",
+    "-p",
+    "Reply with exactly: pong",
+    "-m",
+    "stub-model"
+  ],
+  "fake_harnesses": {
+    "grok": {
+      "stdout_file": "../parse/grok/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "grok",
+      "--output-format",
+      "json",
+      "--model",
+      "stub-model",
+      "--single=Reply with exactly: pong"
+    ]
+  }
+}

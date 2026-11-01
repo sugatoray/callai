@@ -1,0 +1,17 @@
+{
+  "description": "--system-prompt replaces pi's default system prompt (verified with the stub request log; pi appends the cwd).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "system_prompt": "Be terse."
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--system-prompt",
+    "Be terse.",
+    "--",
+    "hello"
+  ]
+}

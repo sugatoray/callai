@@ -1,0 +1,22 @@
+{
+  "description": "STUB MODEL. grok 1.0.70 with GROK_XAI_API_BASE_URL pointing at tools/stub_llm_server.py: `grok --output-format json --model stub-model '--single=Reply with exactly: pong'`. input_tokens (8) excludes the 3 cached tokens.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "stub-model"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_pong.stdout",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "exit_code": 0,
+    "model": "stub-model",
+    "session_id": "00000000-0000-4000-8000-000000000001",
+    "usage": {
+      "input_tokens": 11,
+      "output_tokens": 2
+    },
+    "cost_usd": null
+  }
+}

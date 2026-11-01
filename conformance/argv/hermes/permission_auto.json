@@ -1,0 +1,18 @@
+{
+  "description": "auto: only the `file` toolset (read_file, write_file, patch, search_files): writes and edits, no shell or code execution. Verified with scripted tool calls.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "permission": "auto"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "-t",
+    "file",
+    "--query=hello"
+  ]
+}

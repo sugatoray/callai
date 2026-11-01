@@ -1,0 +1,16 @@
+{
+  "description": "Usage error (exit 2): empty harness name.",
+  "args": [
+    "-n",
+    "codex,",
+    "-p",
+    "hi"
+  ],
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "empty harness name"
+    ]
+  }
+}

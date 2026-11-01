@@ -1,0 +1,16 @@
+{
+  "description": "callai --continue \u2192 pi `--session ID` (session file or partial UUID) / `--continue` (1.4.0 --help).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "hello",
+    "continue_session": true
+  },
+  "expected_argv": [
+    "pi",
+    "--mode",
+    "json",
+    "--continue",
+    "--",
+    "hello"
+  ]
+}

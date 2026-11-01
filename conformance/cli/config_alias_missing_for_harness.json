@@ -1,0 +1,19 @@
+{
+  "description": "A model alias with no entry for the chosen harness is a usage error, not passed on verbatim.",
+  "args": [
+    "-n",
+    "pi",
+    "-p",
+    "hi",
+    "-m",
+    "fast",
+    "--dry-run"
+  ],
+  "config": "[aliases]\nfast = { codex = \"gpt-5-codex-mini\" }\n",
+  "expected": {
+    "exit_code": 2,
+    "stderr_contains": [
+      "model alias 'fast' has no entry for pi"
+    ]
+  }
+}

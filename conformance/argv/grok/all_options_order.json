@@ -1,0 +1,28 @@
+{
+  "description": "Canonical order: model, permission, system prompt, extra args, then --single=PROMPT.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "do it",
+    "model": "stub-model",
+    "permission": "read-only",
+    "system_prompt": "S",
+    "extra_args": [
+      "--no-subagents"
+    ]
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--model",
+    "stub-model",
+    "--tools",
+    "read_file,grep,list_dir",
+    "--disallowed-tools",
+    "search_tool,use_tool",
+    "--system-prompt-override",
+    "S",
+    "--no-subagents",
+    "--single=do it"
+  ]
+}

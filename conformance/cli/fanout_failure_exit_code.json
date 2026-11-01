@@ -1,0 +1,27 @@
+{
+  "description": "A failed harness doesn't stop the others. Its header says so and its error is under it; its own stderr goes to stderr. The exit code is the first failed run's, in the order given.",
+  "args": [
+    "-n",
+    "claude-code/codex",
+    "-p",
+    "hi"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "codex": {
+      "stdout_file": "../parse/codex/error_unknown_model.stdout",
+      "stderr": "codex: model not found\n",
+      "exit_code": 1
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout": "== claude-code ==\npong\n== codex (failed, exit 1) ==\nThe model `not-a-real-model-xyz` does not exist.\n",
+    "stderr_contains": [
+      "--- codex stderr ---",
+      "codex: model not found"
+    ]
+  }
+}

@@ -1,0 +1,22 @@
+{
+  "description": "STUB MODEL with a scripted shell tool call (stub --tool-call). grok 1.0.70, default permissions: `grok --output-format json --model stub-model '--single=Run: echo hi > shell.txt'`. A headless run can't ask for approval, so grok refuses the call, cancels the turn (stopReason cancelled, empty text) and still exits 0; the reason is only on stderr.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "Run: echo hi > shell.txt",
+    "model": "stub-model"
+  },
+  "exit_code": 0,
+  "stdout_file": "error_permission_refused.stdout",
+  "stderr_file": "error_permission_refused.stderr",
+  "expected": {
+    "is_error": true,
+    "exit_code": 0,
+    "text": "permission required: Execute `echo hi > shell.txt` was not run, as a headless run cannot ask for approval",
+    "session_id": "00000000-0000-4000-8000-000000000001",
+    "model": "stub-model",
+    "usage": {
+      "input_tokens": 11,
+      "output_tokens": 2
+    }
+  }
+}

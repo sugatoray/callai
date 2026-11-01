@@ -1,0 +1,24 @@
+{
+  "description": "--permission read-only is refused for hermes (exit 2) without starting it.",
+  "args": [
+    "-n",
+    "hermes",
+    "-p",
+    "hi",
+    "--permission",
+    "read-only"
+  ],
+  "fake_harnesses": {
+    "hermes": {
+      "stdout": "",
+      "exit_code": 0
+    }
+  },
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "read-only"
+    ]
+  }
+}

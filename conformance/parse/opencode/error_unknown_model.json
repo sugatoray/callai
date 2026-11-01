@@ -1,0 +1,20 @@
+{
+  "description": "opencode 1.19.5 with -m stub/not-a-real-model-xyz (STUB MODEL config): stdout has only a generic 'Unexpected server error' event; the real reason is in the ERROR log line on stderr. Exit 1. Recorded 2026-10-30.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "stub/not-a-real-model-xyz"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_unknown_model.stdout",
+  "stderr_file": "error_unknown_model.stderr",
+  "expected": {
+    "harness_name": "opencode",
+    "model": "stub/not-a-real-model-xyz",
+    "is_error": true,
+    "exit_code": 1,
+    "session_id": "ses_00000000000000000000000002",
+    "text": "ProviderModelNotFoundError: Model not found: stub/not-a-real-model-xyz. Did you mean: stub-model?",
+    "usage": null
+  }
+}

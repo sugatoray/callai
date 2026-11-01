@@ -1,0 +1,15 @@
+{
+  "description": "Multi-line prompt with quotes and shell metacharacters stays one argv element.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "line 1\nsay \"hi\" && echo $HOME; `ls`"
+  },
+  "expected_argv": [
+    "claude",
+    "-p",
+    "--output-format",
+    "json",
+    "--",
+    "line 1\nsay \"hi\" && echo $HOME; `ls`"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "description": "--permission bypass -> --dangerously-bypass-approvals-and-sandbox. Verified against `codex exec --help` (codex-cli 0.166.0).",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "--dangerously-bypass-approvals-and-sandbox",
+    "--",
+    "hello"
+  ]
+}

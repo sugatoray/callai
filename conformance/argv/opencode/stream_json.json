@@ -1,0 +1,19 @@
+{
+  "description": "-o stream-json needs no change: `opencode run --format json` already streams JSONL events.",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "output_format": "stream-json"
+  },
+  "expected_argv": [
+    "opencode",
+    "run",
+    "--format",
+    "json",
+    "--print-logs",
+    "--log-level",
+    "ERROR",
+    "--",
+    "hello"
+  ]
+}

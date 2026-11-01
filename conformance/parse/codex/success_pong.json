@@ -1,0 +1,22 @@
+{
+  "description": "codex-cli 0.166.0 `exec --json --skip-git-repo-check -- 'Reply with exactly: pong'` against the local STUB MODEL (conformance/tools/stub_llm_server.py, Responses API); real codex event stream, canned reply. Includes a non-fatal item.type=error warning that must not mark the run failed. Recorded 2026-10-30; thread id redacted.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "Reply with exactly: pong"
+  },
+  "exit_code": 0,
+  "stdout_file": "success_pong.stdout",
+  "expected": {
+    "harness_name": "codex",
+    "model": null,
+    "text": "pong",
+    "exit_code": 0,
+    "is_error": false,
+    "session_id": "00000000-0000-4000-8000-000000000003",
+    "usage": {
+      "input_tokens": 11,
+      "output_tokens": 2
+    },
+    "cost_usd": null
+  }
+}

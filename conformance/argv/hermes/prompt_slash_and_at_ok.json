@@ -1,0 +1,15 @@
+{
+  "description": "Unlike grok and pi, hermes does not interpret a leading '/' or '@' in -q text.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "/compact @notes.txt"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--query=/compact @notes.txt"
+  ]
+}

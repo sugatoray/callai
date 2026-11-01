@@ -1,0 +1,27 @@
+{
+  "description": "With an explicit list, any harness refusing the options is a usage error before anything runs (exit 2), naming the harness.",
+  "args": [
+    "-n",
+    "claude-code/opencode",
+    "-p",
+    "hi",
+    "--permission",
+    "read-only"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    },
+    "opencode": {
+      "stdout_file": "../parse/opencode/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 2,
+    "stdout": "",
+    "stderr_contains": [
+      "opencode:",
+      "read-only"
+    ]
+  }
+}

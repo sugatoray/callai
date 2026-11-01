@@ -1,0 +1,18 @@
+{
+  "description": "read-only: only grok's read tools. --tools alone keeps search_tool/use_tool (the gateway to MCP and deferred tools), so those are removed too. Verified via the tools grok offered the stub model: grep, list_dir, read_file.",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "hello",
+    "permission": "read-only"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--tools",
+    "read_file,grep,list_dir",
+    "--disallowed-tools",
+    "search_tool,use_tool",
+    "--single=hello"
+  ]
+}

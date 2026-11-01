@@ -1,0 +1,11 @@
+{
+  "description": "opencode has no read-only mode: its `plan` agent denies edits but still allows shell commands. Fail closed (DESIGN §7).",
+  "harness_name": "opencode",
+  "request": {
+    "prompt": "hello",
+    "permission": "read-only"
+  },
+  "expected_error": {
+    "message_contains": "read-only"
+  }
+}

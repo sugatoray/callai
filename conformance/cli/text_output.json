@@ -1,0 +1,26 @@
+{
+  "description": "Default -o text prints only the final answer (recorded claude output replayed by a fake).",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "Reply with exactly: pong"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/success_pong.stdout"
+    }
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout": "pong\n",
+    "harness_argv": [
+      "claude",
+      "-p",
+      "--output-format",
+      "json",
+      "--",
+      "Reply with exactly: pong"
+    ]
+  }
+}

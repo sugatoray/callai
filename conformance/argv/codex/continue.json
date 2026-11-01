@@ -1,0 +1,18 @@
+{
+  "description": "callai --continue \u2192 `codex exec ... resume --last -- PROMPT`. `codex exec resume` is a subcommand: exec's own options (--json, --model, --sandbox, ...) go before it, because `resume` itself rejects --sandbox (codex-cli 0.166.0); then the session id or --last, then `-- PROMPT`.",
+  "harness_name": "codex",
+  "request": {
+    "prompt": "hello",
+    "continue_session": true
+  },
+  "expected_argv": [
+    "codex",
+    "exec",
+    "--json",
+    "--skip-git-repo-check",
+    "resume",
+    "--last",
+    "--",
+    "hello"
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "description": "pi 1.4.0 `--mode json`. STUB MODEL, recorded 2026-10-30 with a scripted shell tool call (stub_llm_server.py --tool-call) and canned reply 'pong'; session ids and the working directory redacted. Text comes from `text_delta` events (pieces of a message as they arrive).",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "Say hi.",
+    "model": "stub/stub-model",
+    "permission": "bypass",
+    "output_format": "stream-json"
+  },
+  "exit_code": 0,
+  "stdout_file": "stream_tool_call.stdout",
+  "expected": {
+    "text": "pong",
+    "is_error": false,
+    "model": "stub/stub-model"
+  },
+  "expected_events": [
+    {
+      "type": "tool_use",
+      "id": "call_stub_1",
+      "name": "bash",
+      "input": {
+        "command": "echo hi"
+      }
+    },
+    {
+      "type": "tool_result",
+      "id": "call_stub_1",
+      "is_error": false,
+      "output": "hi\n"
+    },
+    {
+      "type": "text",
+      "text": "pong"
+    }
+  ]
+}

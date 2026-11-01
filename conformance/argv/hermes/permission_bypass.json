@@ -1,0 +1,17 @@
+{
+  "description": "bypass: --yolo skips the approval hermes asks for dangerous commands (verified: `rm -rf` ran).",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "permission": "bypass"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--yolo",
+    "--query=hello"
+  ]
+}

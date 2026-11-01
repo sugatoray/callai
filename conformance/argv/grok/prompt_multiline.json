@@ -1,0 +1,13 @@
+{
+  "description": "Newlines survive in the `--single=` value (verified in the stub's request log).",
+  "harness_name": "grok",
+  "request": {
+    "prompt": "line1\nline2"
+  },
+  "expected_argv": [
+    "grok",
+    "--output-format",
+    "json",
+    "--single=line1\nline2"
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "description": "Harness error in json mode: the Result is still printed on stdout with is_error true.",
+  "args": [
+    "-n",
+    "claude-code",
+    "-p",
+    "hi",
+    "-m",
+    "not-a-real-model-xyz",
+    "-o",
+    "json"
+  ],
+  "fake_harnesses": {
+    "claude": {
+      "stdout_file": "../parse/claude-code/error_unknown_model.stdout",
+      "exit_code": 1
+    }
+  },
+  "expected": {
+    "exit_code": 1,
+    "stdout_json_subset": {
+      "is_error": true,
+      "exit_code": 1,
+      "model": "not-a-real-model-xyz",
+      "text": "There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it."
+    }
+  }
+}

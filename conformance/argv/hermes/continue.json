@@ -1,0 +1,11 @@
+{
+  "description": "--continue is refused for hermes: `hermes chat --continue` only looks for the most recent interactive (`cli`) session (hermes-agent 0.19.0 hermes_cli/main.py), never callai's own `--source tool` runs, so it would continue a different conversation. Use --resume with the session_id callai reported (verified against the stub).",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "hello",
+    "continue_session": true
+  },
+  "expected_error": {
+    "message_contains": "--continue"
+  }
+}

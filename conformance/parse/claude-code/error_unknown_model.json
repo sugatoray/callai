@@ -1,0 +1,18 @@
+{
+  "description": "Unknown model: claude exits 1 with subtype 'success' but is_error true (trap: decide errors by is_error, not subtype). Recorded 2026-10-30.",
+  "harness_name": "claude-code",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "not-a-real-model-xyz"
+  },
+  "exit_code": 1,
+  "stdout_file": "error_unknown_model.stdout",
+  "stderr_file": "error_unknown_model.stderr",
+  "expected": {
+    "harness_name": "claude-code",
+    "text": "There's an issue with the selected model (not-a-real-model-xyz). It may not exist or you may not have access to it.",
+    "exit_code": 1,
+    "is_error": true,
+    "session_id": "00000000-0000-4000-8000-000000000001"
+  }
+}

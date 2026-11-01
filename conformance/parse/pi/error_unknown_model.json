@@ -1,0 +1,18 @@
+{
+  "description": "pi 1.4.0 `--mode json --model stub/not-a-real-model-xyz -- 'Reply with exactly: pong'` against the local STUB MODEL (models.json provider, openai-completions). Recorded 2026-10-30; session id and cwd redacted. The stub returns HTTP 404; pi still EXITS 0 and reports it only as stopReason 'error' + errorMessage on the assistant message.",
+  "harness_name": "pi",
+  "request": {
+    "prompt": "Reply with exactly: pong",
+    "model": "stub/not-a-real-model-xyz"
+  },
+  "exit_code": 0,
+  "stdout_file": "error_unknown_model.stdout",
+  "expected": {
+    "harness_name": "pi",
+    "model": "stub/not-a-real-model-xyz",
+    "exit_code": 0,
+    "is_error": true,
+    "text": "404: {\"message\":\"The model `not-a-real-model-xyz` does not exist.\",\"type\":\"invalid_request_error\",\"code\":\"model_not_found\"}",
+    "session_id": "00000000-0000-4000-8000-000000000006"
+  }
+}

@@ -1,0 +1,32 @@
+{
+  "description": "-p TEXT with a non-TTY stdin that stays open and silent (an agent's or script's stdin): callai waits CALLAI_STDIN_WAIT seconds for data, warns, and runs with the prompt alone instead of hanging (like claude -p, which waits 3s).",
+  "args": [
+    "-n",
+    "claude-code",
+    "--dry-run",
+    "-o",
+    "json",
+    "-p",
+    "hello"
+  ],
+  "stdin_open": true,
+  "env": {
+    "CALLAI_STDIN_WAIT": "0.2"
+  },
+  "expected": {
+    "exit_code": 0,
+    "stdout_json": {
+      "argv": [
+        "claude",
+        "-p",
+        "--output-format",
+        "json",
+        "--",
+        "hello"
+      ]
+    },
+    "stderr_contains": [
+      "no stdin data received in 0.2s, proceeding without it"
+    ]
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "description": "argparse would read `-q --help` as an option; `--query=PROMPT` takes any text. hermes sends the -q text literally (no slash commands or @files; verified in the stub's request log), trimming outer whitespace.",
+  "harness_name": "hermes",
+  "request": {
+    "prompt": "--help"
+  },
+  "expected_argv": [
+    "hermes",
+    "chat",
+    "-Q",
+    "--source",
+    "tool",
+    "--query=--help"
+  ]
+}
