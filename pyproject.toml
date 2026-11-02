@@ -64,6 +64,7 @@ target-version = "py311"
 line-length = 120
 src = ["src"]
 include = ["*.py", "*.pyi"]
+extend-exclude = [".agents", ".claude"]  # third-party agent skills; not project code
 
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B", "SIM", "D", "DOC"]
