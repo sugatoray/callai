@@ -20,4 +20,13 @@ from .result import Result
 
 __all__ = ["CallaiError", "HarnessNotFound", "HarnessTimeout", "Interrupted", "Result", "UsageError", "main", "run"]
 
-__version__ = "0.8.0"
+try:
+    from importlib import metadata
+except ImportError:  # for Python<3.8
+    import importlib_metadata as metadata
+
+__libname__ = "callai"
+__title__ = __name__ if __name__ == __libname__ else __libname__.replace("-", "_")  # type: ignore
+__version__ = metadata.version(__title__)  # type: ignore
+
+#__version__ = "0.8.0"
