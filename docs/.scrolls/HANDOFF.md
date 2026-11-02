@@ -13,6 +13,7 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - 531 tests (+12 live, skipped by default), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~42 s (fan-out timing tests sleep).
 
 ## What just happened
+- Ruff (`pyproject.toml`) now excludes `.agents` and `.claude`, because the installed skills' Python files made `ruff check .` fail in CI. `ruff check` and `ruff format --check` pass locally; the CI run on PR #30 has not been checked yet.
 - Installed agent skills from `sugatoray/aiskills` with `npx skills add` for Codex and Claude Code: scrolls-setup/-update/-help/-hide/-unhide, create-issues-update-pr, create-lib-docs (`create-lob-docs` was a typo for `create-lib-docs`). Files are in `.agents/skills/` (Claude Code symlinks via `.claude/skills/`), pinned in `skills-lock.json`. Pushed on branch `claude/blissful-bell-tqq4l2`, PR https://github.com/sugatoray/callai/pull/30.
 - CA-25: Python 3.11–3.14 support made explicit (pin, `make test.matrix`, CI workflow, classifiers). Fixed a test that failed on 3.13 (argparse help layout).
 - Moved to `sugatoray/callai`: `expt_callai`/"this experiment" wording replaced with callai / the repository root; `pyproject.toml` `[project.urls]` now point here; docs links point here.

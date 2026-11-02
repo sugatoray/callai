@@ -12,6 +12,7 @@ Things you must respect or conform to (external requirements, API contracts, pla
 ## Traps — avoid them always
 Specific bugs that have bitten this project before — avoid repeating them.
 
+- Agent skills installed into `.agents/` (symlinked from `.claude/skills/`) ship their own Python files, and `ruff check .` in CI lints them. `[tool.ruff] extend-exclude` lists `.agents` and `.claude`; keep that when installing more skills, and exclude any other new third-party folder the same way.
 - A prompt starting with `-` gets parsed as a harness flag unless it is guarded: always put the prompt **last, after `--`** (verified with claude 2.1.314; enforced by `test_conformance_data.py`).
 - `claude -p --output-format json` reports failures as `"subtype": "success"` **with** `"is_error": true` (e.g. unknown model, exit 1). Decide errors from `is_error` and the exit code, never from `subtype`.
 - The harness must get `stdin=DEVNULL`: `claude -p` reads piped stdin and would append callai's stdin to the prompt a second time.
