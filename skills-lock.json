@@ -1,0 +1,47 @@
+{
+  "version": 1,
+  "skills": {
+    "create-issues-update-pr": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/development/repo-related/create-issues-update-pr/SKILL.md",
+      "computedHash": "8a8a593b304ae865c7fd50c7d92873ce64b20df79ccede979e65ebb1688a5d89"
+    },
+    "create-lib-docs": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/docs/create-lib-docs/SKILL.md",
+      "computedHash": "5a0d817a482a1b22fcae286938123df605d243d3cd4f9a50c13fba9fd1760251"
+    },
+    "scrolls-help": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/scrolls/scrolls-help/SKILL.md",
+      "computedHash": "658b8b585ea5d944519b2bd893298022f7d6362a71ad23ba69988bb2750477a4"
+    },
+    "scrolls-hide": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/scrolls/scrolls-hide/SKILL.md",
+      "computedHash": "f5d0606753c1f9dfb69882665bce24ce621a7e87ce0e9aac4d79119fe969707e"
+    },
+    "scrolls-setup": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/scrolls/scrolls-setup/SKILL.md",
+      "computedHash": "a84ee9787ee3246b5e11c4f057373e3a8b65e6091d4b3433f114034a683a71b9"
+    },
+    "scrolls-unhide": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/scrolls/scrolls-unhide/SKILL.md",
+      "computedHash": "07959191ff12b4a4cf91fe299c1a725a648142db665d1bfe32c919930a4c19b2"
+    },
+    "scrolls-update": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/scrolls/scrolls-update/SKILL.md",
+      "computedHash": "6ba8c875990af933c4c335dda28d540b495f4cea5a3167ef65d2c5f6c1aa4734"
+    }
+  }
+}
