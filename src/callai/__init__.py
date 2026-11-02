@@ -29,13 +29,9 @@ __all__ = [
     "run",
 ]
 
+from importlib import metadata
+
 try:
-    from importlib import metadata
-except ImportError:  # for Python<3.8
-    import importlib_metadata as metadata
-
-__libname__ = "callai"
-__title__ = __name__ if __name__ == __libname__ else __libname__.replace("-", "_")  # type: ignore
-__version__ = metadata.version(__title__)  # type: ignore
-
-#__version__ = "0.8.0"
+    __version__ = metadata.version("callai-cli")  # the distribution name, not the import name
+except metadata.PackageNotFoundError:  # pragma: no cover - running from a source tree that was never installed
+    __version__ = "0.0.0+unknown"

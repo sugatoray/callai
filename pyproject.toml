@@ -12,7 +12,7 @@ authors = [
 ]
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
-classifiers = [ 
+classifiers = [
     ##########################################################################################
     # source:
     # - adding classifiers to pyproject.toml:
@@ -26,7 +26,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Science/Research",
-    "Intended Audience :: AI Engineers",
 
     "Operating System :: OS Independent",
     #"Operating System :: POSIX :: Linux",
@@ -46,13 +45,10 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Software Development :: Testing",
-    "Topic :: Software Development :: CLI",
     "Topic :: Utilities",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
-    "Topic :: Scientific/Engineering :: Agentic Harness",
-    "Typing :: Typed",
-    
+
     ## If an internal or private package, add the following classifier:
     # "Private :: Do Not Upload",
 ]
@@ -144,4 +140,3 @@ exclude-newer = "5 days"
 # "gitpython" = "2 days"
 # "pydantic" = "2 days"
 # "marimo" = "1 days"
-

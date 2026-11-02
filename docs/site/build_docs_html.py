@@ -12,6 +12,7 @@ import base64
 import json
 import re
 import sys
+import tomllib
 from pathlib import Path
 
 HERE = Path(__file__).resolve().parent
@@ -73,13 +74,13 @@ def collect(docs: Path) -> tuple[list[dict], list[dict]]:
 
 
 def version() -> str:
-    """Return callai's version, read from src/callai/__init__.py without importing it.
+    """Return callai's version, read from pyproject.toml (the single source of truth).
 
     Returns:
         The version string, e.g. "0.7.0".
     """
-    init = HERE.parents[1] / "src" / "callai" / "__init__.py"
-    return re.search(r'__version__ = "([^"]+)"', init.read_text(encoding="utf-8")).group(1)
+    pyproject = HERE.parents[1] / "pyproject.toml"
+    return tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
 
 
 def build(docs: Path, ref: str) -> tuple[str, int]:
