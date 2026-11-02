@@ -18,7 +18,16 @@ from .cli import main
 from .errors import CallaiError, HarnessNotFound, HarnessTimeout, Interrupted, UsageError
 from .result import Result
 
-__all__ = ["CallaiError", "HarnessNotFound", "HarnessTimeout", "Interrupted", "Result", "UsageError", "main", "run"]
+__all__ = [
+    "CallaiError",
+    "HarnessNotFound",
+    "HarnessTimeout",
+    "Interrupted",
+    "Result",
+    "UsageError",
+    "main",
+    "run",
+]
 
 try:
     from importlib import metadata
