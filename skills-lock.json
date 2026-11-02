@@ -7,6 +7,12 @@
       "skillPath": "skills/development/repo-related/create-issues-update-pr/SKILL.md",
       "computedHash": "8a8a593b304ae865c7fd50c7d92873ce64b20df79ccede979e65ebb1688a5d89"
     },
+    "create-lib-docs": {
+      "source": "sugatoray/aiskills",
+      "sourceType": "github",
+      "skillPath": "skills/docs/create-lib-docs/SKILL.md",
+      "computedHash": "5a0d817a482a1b22fcae286938123df605d243d3cd4f9a50c13fba9fd1760251"
+    },
     "scrolls-help": {
       "source": "sugatoray/aiskills",
       "sourceType": "github",
