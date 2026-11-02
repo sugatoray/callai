@@ -1,0 +1,85 @@
+# Changelog
+
+All notable changes to the `create-issues-update-pr` skill are
+documented here. Format based on
+[Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+
+## [1.3.0] - 2026-09-21
+
+### Changed
+
+- The PR body's default shape (step 6, "Update the PR") is now three
+  parts in order — a short **Summary**, a **Details** section, then
+  the **Issues** list — instead of just appending an `## Issues`
+  section to whatever the body already contained. This is the default
+  when writing/rewriting a body from scratch; a PR with its own
+  established, still-accurate structure (Summary/Key changes/Test
+  plan, or a repo's own convention) keeps that structure, with the
+  Issues section added or refreshed additively within it, same as
+  before. Added a full worked example of the default shape to the
+  format reference, ahead of the existing Issues-only fragments (which
+  now read as "just the Issues part of the body," not the whole thing).
+  Previously this shape had to be requested explicitly per invocation
+  ("... with brief description and then the details + nested list of
+  issues"); it's now what running the skill produces on its own.
+
+## [1.2.1] - 2026-09-21
+
+### Fixed
+
+- Flattened the frontmatter `metadata` field from a one-item YAML list
+  to a flat mapping — GitLab Duo requires `metadata` to be a map, and
+  the list form it had briefly taken on broke compatibility with it.
+  `source_url` kept pointing at this skill's GitHub source. No
+  functional change to the skill's behavior.
+
+## [1.2.0] - 2026-09-02
+
+### Changed
+
+- The `## Issues` list format changed from `- #{{issue-number}} --
+  {{issue-title}}` to `- Closes #{{issue-number}} -- {{issue-title}}`,
+  on every line including a parent epic's — GitHub auto-closes any
+  issue referenced this way when the PR merges into the default branch,
+  so the list now also does the closing rather than just describing it.
+  Updated the workflow step, both format-reference examples, and the
+  frontmatter `description`.
+
+## [1.1.0] - 2026-08-28
+
+### Added
+
+- `.claude-plugin/plugin.json`: a Claude Code plugin manifest, making
+  this directory a self-contained, loadable plugin (`claude
+  --plugin-dir skills/development/repo-related/create-issues-update-pr`)
+  with no restructuring — `SKILL.md` already sat at the plugin root
+  with no `skills/` subfolder.
+- `agents/claude-code.yaml`, `agents/openai.yaml`: per-agent-harness
+  interface metadata for the `npx skills add --agent <name>` install
+  path, matching the `scrolls-*` skills' own `agents/openai.yaml`
+  pattern.
+- This skill is now also part of the `repo-related-skills` family
+  plugin (`skills/development/repo-related/.claude-plugin/plugin.json`,
+  new), installable via `/plugin install repo-related-skills@sugatoray`
+  after `/plugin marketplace add sugatoray/aiskills`, in addition to
+  this skill's own standalone plugin manifest. See
+  `skills/development/repo-related/meta/MAINTAINERS.md` (new) for the
+  family-level manifest and this skill's own `meta/MAINTAINERS.md` for
+  how the two relate.
+- `skills/development/repo-related/README.md` rewritten to follow
+  `skills/scrolls/README.md`'s structure (a `## Skills` table and a
+  detailed `## Layout` section covering every file, including the new
+  plugin/agent files).
+
+## [1.0.0] - 2026-08-28
+
+### Added
+
+- Initial release: files GitHub issue(s) for a PR's work (one flat
+  issue, or a parent epic plus children via GitHub's native parent/child
+  relationship when the work genuinely splits into distinct pieces),
+  checks the repository's issue-type support first, searches for
+  duplicates before creating, then rewrites the PR's title (kept short)
+  and description with an `## Issues` section listing every issue as
+  `- #{{issue-number}} -- {{issue-title}}`, indented to match
+  parent-child nesting. Verifies with a fresh read after writing.
