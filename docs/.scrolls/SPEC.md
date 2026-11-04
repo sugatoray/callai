@@ -97,8 +97,9 @@ Ctrl-C stops all. Code: `src/callai/fanout.py`, `cli._execute_many`.
 `make docs.html` writes `build/docs.html`: every page and diagram of `docs/callai/` in one self-contained page,
 with a tab per docs section, a page list, an on-this-page outline that follows your scroll, search (`/`), copy
 buttons on code, and a light/dark toggle that remembers your choice. Links between pages stay in the page; links
-to other repo files open on GitHub at `DOCS_REF` (default: the current branch). The landing page opens with the
-project banner as live HTML (copied from `src/tools/banner/callai-banner.html` without the editing features,
+to other repo files open on GitHub at `DOCS_REF` (default: the current branch). The header has a GitHub button (the repository, no branch)
+next to the theme toggle, and a magnifying-glass icon in the search box (icon only on phones). The landing page
+opens with the project banner as live HTML (copied from `src/tools/banner/callai-banner.html` without the editing features,
 scaled to the column; `--banner PATH` / `--no-banner`). Markdown is rendered in the
 browser (marked + highlight.js from cdnjs). Code: `docs/site/build_docs_html.py`, `docs/site/template.html`.
 

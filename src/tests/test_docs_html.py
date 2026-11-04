@@ -107,3 +107,25 @@ def test_banner_without_markers_or_missing_is_an_error(tmp_path):
             assert message in str(exc)
         else:
             raise AssertionError(f"expected an error for {path}")
+
+
+def test_header_links_to_the_repo_without_a_branch(tmp_path):
+    html, _ = _build(tmp_path, "--ref", "some-branch")
+    header = html[html.index('<header class="top">') : html.index("</header>")]
+    links = re.findall(r'<a class="icon-btn gh-btn" href="([^"]+)"[^>]*>', header)
+    assert links == ["https://github.com/sugatoray/callai"]
+    tag = re.search(r'<a class="icon-btn gh-btn"[^>]*>', header).group(0)
+    assert 'aria-label="callai on GitHub"' in tag and 'target="_blank"' in tag and 'rel="noopener"' in tag
+    assert "some-branch" not in header
+    # it sits right before the light/dark toggle
+    assert header.index("gh-btn") < header.index('id="theme-btn"')
+    assert '</a>\n    <button class="icon-btn theme-btn"' in header
+
+
+def test_search_box_has_a_magnifying_glass_and_keeps_its_label(tmp_path):
+    html, _ = _build(tmp_path)
+    search = html[html.index('<label class="search"') : html.index("</label>", html.index('<label class="search"'))]
+    assert 'class="search-icon"' in search and 'aria-hidden="true"' in search
+    assert 'placeholder="Search the docs"' in search and 'aria-label="Search the docs"' in search
+    # phones hide the placeholder text, leaving the icon
+    assert re.search(r"@media \(max-width: 560px\) \{[^@]*\.search input::placeholder \{ color: transparent; \}", html)

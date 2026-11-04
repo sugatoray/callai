@@ -170,7 +170,7 @@ def build(docs: Path, ref: str, banner: Path | None = BANNER) -> tuple[str, int]
     }
     blob = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")  # never close the <script> early
     template = (HERE / "template.html").read_text(encoding="utf-8")
-    html = template.replace("{{VERSION}}", version()).replace("/*__BANNER_CSS__*/", css)
+    html = template.replace("{{VERSION}}", version()).replace("{{REPO}}", REPO).replace("/*__BANNER_CSS__*/", css)
     html = html.replace("/*__DOCS_DATA__*/null", blob)
     return html, len(pages)
 

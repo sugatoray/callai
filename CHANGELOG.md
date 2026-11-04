@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `make docs.html` header: a GitHub button (links to https://github.com/sugatoray/callai, no branch) next to the
+  light/dark toggle, and a magnifying-glass icon in the search box. On phones the icon replaces the
+  "Search the docs" placeholder text, which no longer fits.
 - `make docs.html` opens the landing page with the project banner: its HTML and CSS, without the editing
   features, copied from `src/tools/banner/callai-banner.html` and scaled to the column width (live text, not an
   image; the page stays at about 190 KB). `build_docs_html.py --banner PATH` picks another banner page, and
