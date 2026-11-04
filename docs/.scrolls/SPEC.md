@@ -100,6 +100,17 @@ buttons on code, and a light/dark toggle that remembers your choice. Links betwe
 to other repo files open on GitHub at `DOCS_REF` (default: the current branch). Markdown is rendered in the
 browser (marked + highlight.js from cdnjs). Code: `docs/site/build_docs_html.py`, `docs/site/template.html`.
 
+## Project banner (`make maint.banner`)
+
+A maintainer tool, not shipped in the package. `make maint.banner` writes `src/tools/banner/callai-banner.html`:
+a 1280 × 640 banner page showing the wordmark, version/Python/license badges, tagline, install command, a
+terminal demo and the harness row. All its text comes from `src/tools/banner/config.yaml`; `"auto"` values
+track the repository (version, Python requirement, license and URL from `pyproject.toml`, harnesses from the
+registry). `make maint.banner BANNER_PACKAGE_VERSION=X.Y.Z` shows another version. In a browser the page has an
+Edit/Save toggle (saved per build in browser storage), Save HTML, Reset, and PNG export with the banner's own,
+white, black or transparent background at 1x, 2x or 4x ("Export all 12" for every combination). Details:
+`src/tools/banner/README.md`.
+
 ## Changelog convention
 
 `CHANGELOG.md` tracks notable changes to callai, in [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) format with [Semantic Versioning](https://semver.org/) version numbers. It starts with an `[Unreleased]` section; add a dated, versioned section (`## [x.y.z] - YYYY-MM-DD`) once callai cuts an actual release/milestone worth naming.

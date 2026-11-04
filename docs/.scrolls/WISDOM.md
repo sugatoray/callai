@@ -54,6 +54,10 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - A reusable workflow evaluates `concurrency` itself, with the *caller's* `github.workflow`/`github.ref`: give the caller a different group than the called workflow, or the callee cancels itself.
 - `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards.
 - A `workflow_dispatch` workflow only shows its "Run workflow" button once the file is on the default branch, and the `github-pages` environment normally refuses deploys from other branches. Give the workflow a build-only input if it must run from any branch.
+- pytest `addopts` carries `--cov=callai` and coverage `fail_under = 95`: running only a non-callai test folder (e.g. `pytest src/tools/banner/tests`) fails on coverage alone. Pass `--no-cov` for such subsets.
+- A page that saves edits in `localStorage` under a fixed key keeps showing old saved text after it is regenerated with new content. `create_banner.py` derives `STORE_KEY` from a hash of the filled-in content.
+- A template comment that mentions the placeholder syntax (`{{ name }}`) is itself a placeholder to the renderer. Describe the syntax in words in the template.
+- JetBrains Mono turns `==` into one wide glyph; terminal mock-ups that show `== name ==` need `font-variant-ligatures: none`.
 
 ## Ditches — bad patterns or decisions to avoid
 Bad patterns or decisions to never take, and why they were rejected.

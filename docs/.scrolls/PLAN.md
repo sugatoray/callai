@@ -53,6 +53,9 @@ Design reference: `docs/DESIGN.md` (section numbers below point there).
 
 - [x] CA-26: packaging metadata and opt-in CI (PR #35, draft until merged). Single-sourced version (`pyproject.toml` → installed metadata), valid trove classifiers + `py.typed`, `.editorconfig`, uv `exclude-newer` cooldown, tests run on master/manual/`ci::run-tests` label only. `make pkg.*` targets and `MANIFEST.in` added. `docs.yml` publishes the docs on GitHub Pages. Open: create the `ci::run-tests` label; run `docs.yml` once on master and check the site; confirm both workflows on GitHub; try `pkg.publish` on TestPyPI before the first real release.
 
+## Maintainer tools (`src/tools/`, never packaged)
+- [x] CA-27: callai-cli banner. `src/tools/banner/`: template (`assets/callai-banner-template.html`) + `config.yaml` (double-quoted values, `"auto"` from `pyproject.toml`/`HARNESS_NAMES`) → `create_banner.py` → committed `callai-banner.html`. `make maint.banner` / `maint.banner.check`; tests in `src/tools/banner/tests` run with `make test` and fail while the committed page is stale. Own `README.md` and `CHANGELOG.md`. Open: no PR yet (branch `claude/friendly-darwin-kqdygb`).
+
 ## Later
 - [ ] CA-16: TypeScript port, module by module, passing the full `conformance/` suite (vitest); publish to npm. Maintained alongside Python.
 - [ ] CA-17: (if it makes sense) Rust port passing `conformance/`.
