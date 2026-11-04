@@ -14,7 +14,14 @@ on:
       - "pyproject.toml"
       - "Makefile"
       - ".github/workflows/docs.yml"
+  # Manual run on any branch (pick it in "Use workflow from"). Untick "deploy" to only build the site
+  # and keep it as a downloadable artifact (Pages deploys are limited by the github-pages environment).
   workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to GitHub Pages (untick to only build)"
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -31,14 +38,15 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.11"
-      # DOCS_REF: links from the docs to files outside docs/ point at GitHub on this branch.
-      - run: make docs.html DOCS_HTML=site/index.html DOCS_REF=master
+      # DOCS_REF: links from the docs to files outside docs/ point at GitHub on the branch being built.
+      - run: make docs.html DOCS_HTML=site/index.html DOCS_REF=${{ github.ref_name }}
       - uses: actions/upload-pages-artifact@v5
         with:
           path: site
 
   deploy:
     needs: build
+    if: github.event_name != 'workflow_dispatch' || inputs.deploy
     runs-on: ubuntu-latest
     permissions:
       pages: write
