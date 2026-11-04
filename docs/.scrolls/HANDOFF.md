@@ -3,7 +3,7 @@
 Snapshot of where the project stands *right now*. This file is short-lived: **overwrite** it at the end of every session rather than appending — it's a state snapshot, not a changelog.
 
 ## Current state
-- Repository `sugatoray/callai` is now the primary home (imported from `sugatoray/devx` `src/experiments/expt_callai` at 0.8.0; the devx copy is no longer where it is developed). The import branch `feat/import-callai` was merged and deleted. Version **0.8.0** (CHANGELOG 0.1.0…0.5.0 cut 2026-10-30, 0.6.0 on 2026-10-31, 0.7.0 (docs) and 0.8.0 (`make docs.html`) on 2026-11-01; no git tags yet). `[Unreleased]` is empty.
+- Repository `sugatoray/callai` is now the primary home (imported from `sugatoray/devx` `src/experiments/expt_callai` at 0.8.0; the devx copy is no longer where it is developed). The import branch `feat/import-callai` was merged and deleted. Version **0.9.0**, cut 2026-11-04 on the PR https://github.com/sugatoray/callai/pull/46 branch (banner tool; docs.html banner, GitHub button and search icon; plus the CA-26 packaging and the agent skills, which the CHANGELOG had missed). Earlier: 0.1.0…0.5.0 cut 2026-10-30, 0.6.0 on 2026-10-31, 0.7.0 (docs) and 0.8.0 (`make docs.html`) on 2026-11-01. No git tags yet. `[Unreleased]` is empty.
 - CA-0…CA-15c, CA-19…CA-27 done. Remaining backlog is Later only: CA-16 TypeScript port, CA-17/18 Rust.
 - CLI: `callai -n HARNESS_NAME|a/b|a,b|all -p PROMPT [...]`, `-o text|json|stream-json|raw`, `--resume ID`/`--continue`; Python API `callai.run(...)`.
 - User docs: `docs/callai/` (32 pages, 5 SVGs, `llms.txt`/`llms-full.txt`), written with the `/create-lib-docs` skill (published in `sugatoray/aiskills`). `make docs.html` bundles them into `build/docs.html` (gitignored).
@@ -34,5 +34,5 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - Windows still blocks on an idle stdin pipe.
 - Fan-out: shared working directory; `-v` stderr not prefixed in parallel.
 - After a fresh clone run `uv sync --extra test --extra dev` (the version now comes from installed metadata; an uninstalled source tree reports `0.0.0+unknown`).
-- Next: CA-16 (TypeScript port) if wanted, or tag v0.1.0…v0.8.0 (or just v0.8.0), since the import is merged.
+- Next: merge PR #46, then tag `v0.9.0` on master (optionally the older versions too) and try `make pkg.publish` on TestPyPI before PyPI. Or CA-16 (TypeScript port).
 - Gemma via Hugging Face: needs `router.huggingface.co` allowed and an HF_TOKEN. Untested.

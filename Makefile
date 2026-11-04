@@ -58,7 +58,7 @@ test.matrix: ## Run the tests on every supported Python, each isolated (PYTHON_V
 	done
 
 # Packaging. Everything goes through uv. Every knob is a variable, override on the command line, e.g.
-#   make pkg.install.pypi PKG_VERSION=0.8.0
+#   make pkg.install.pypi PKG_VERSION=0.9.0
 #   make pkg.publish PUBLISH_URL=https://test.pypi.org/legacy/ PUBLISH_CHECK_URL=https://test.pypi.org/simple/
 #   make pkg.install.e VENV=/tmp/v
 PKG_NAME ?= callai-cli

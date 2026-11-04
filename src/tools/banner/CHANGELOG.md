@@ -1,12 +1,15 @@
 # Changelog: callai-cli banner tool
 
 All notable changes to the banner tool in `src/tools/banner/` are documented in this file. The tool is not
-part of the `callai` package; changes to callai itself are in the [root changelog](../../../CHANGELOG.md).
+part of the `callai` package, but its sections follow the repository's releases; changes to callai itself are in
+the [root changelog](../../../CHANGELOG.md).
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ## [Unreleased]
+
+## [0.9.0] - 2026-11-04
 
 ### Added
 

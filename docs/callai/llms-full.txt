@@ -193,7 +193,7 @@ callai --version
 ```
 
 ```text
-callai 0.8.0
+callai 0.9.0
 ```
 
 Or into a virtual environment with pip, which also makes the Python API importable:

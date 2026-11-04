@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "callai-cli"  # `callai` is taken on PyPI; the import package and command stay `callai`
-version = "0.8.0"
+version = "0.9.0"
 description = "One CLI to run a prompt non-interactively through any coding-agent harness (claude-code, codex, opencode, pi, hermes, grok)."
 requires-python = ">=3.11"
 authors = [

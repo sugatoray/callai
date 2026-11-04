@@ -10,7 +10,7 @@ callai -n {claude-code,codex,opencode,pi,hermes,grok} -p "PROMPT" [-m MODEL]
 
 **User documentation:** [`docs/callai/`](docs/callai/README.md) has a tutorial, how-to guides, concepts and a full reference, with `llms.txt` for AI agents.
 
-**Status:** Python implementation, version 0.8.0 (Red/Green TDD). All six harnesses work: `claude-code`, `codex`, `opencode`, `pi`, `grok` and `hermes`. The shared test suite is in [`conformance/`](conformance/README.md). PyPI distribution name: `callai-cli` (command `callai`). See [`SCOPE.md`](SCOPE.md) for scope, language/distribution decisions and the roadmap. See [`docs/DESIGN.md`](docs/DESIGN.md) for the CLI surface, adapter architecture, output schema and open decisions, and [`docs/.scrolls/PLAN.md`](docs/.scrolls/PLAN.md) for the build order.
+**Status:** Python implementation, version 0.9.0 (Red/Green TDD). All six harnesses work: `claude-code`, `codex`, `opencode`, `pi`, `grok` and `hermes`. The shared test suite is in [`conformance/`](conformance/README.md). PyPI distribution name: `callai-cli` (command `callai`). See [`SCOPE.md`](SCOPE.md) for scope, language/distribution decisions and the roadmap. See [`docs/DESIGN.md`](docs/DESIGN.md) for the CLI surface, adapter architecture, output schema and open decisions, and [`docs/.scrolls/PLAN.md`](docs/.scrolls/PLAN.md) for the build order.
 
 ## Usage
 
@@ -154,7 +154,7 @@ make pkg.build                     # sdist + wheel -> dist/ (uv build)
 make pkg.publish                   # build, then upload to PyPI (uv publish; set UV_PUBLISH_TOKEN)
 make pkg.install.e                 # editable install of this checkout into .venv
 make pkg.install.local             # install callai-cli from the built dist/
-make pkg.install.pypi              # install callai-cli from PyPI (PKG_VERSION=0.8.0 to pin)
+make pkg.install.pypi              # install callai-cli from PyPI (PKG_VERSION=0.9.0 to pin)
 uv run ruff check . && uv run ruff format --check .
 uv run interrogate src             # docstring coverage (100%)
 uv run callai --version
