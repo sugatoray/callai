@@ -10,7 +10,7 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - All six harness CLIs are installed in the dev container (ephemeral). In a new session run `make install.harnesses` from the repository root; pinned versions are in the `Makefile`.
 - Network policy denies api.openai.com, api.x.ai and router.huggingface.co (cdnjs, jsDelivr and Google Fonts are allowed), and there are no model API keys, so non-claude fixtures come from `conformance/tools/stub_llm_server.py` (labelled STUB MODEL). `conformance/README.md` → "Recording without network" has every harness's config.
 - Python: develop on 3.11 (`.python-version`, `make test`); `make test.matrix` and CI (`.github/workflows/tests.yml`; runs on master pushes and manual dispatch, and on PRs labelled `ci::run-tests` via `run-tests-on-label.yml`) cover 3.11–3.14, all passing locally.
-- 578 tests (+13 skipped: 12 live, 1 runs only when PyYAML is installed), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
+- 590 tests (+13 skipped: 12 live, 1 runs only when PyYAML is installed), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
 - Maintainer tools live in `src/tools/` (not packaged). The first is the banner builder `src/tools/banner/` (CA-27), with its own `README.md` and `CHANGELOG.md`.
 
 ## What just happened
