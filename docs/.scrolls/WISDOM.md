@@ -57,6 +57,8 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - pytest `addopts` carries `--cov=callai` and coverage `fail_under = 95`: running only a non-callai test folder (e.g. `pytest src/tools/banner/tests`) fails on coverage alone. Pass `--no-cov` for such subsets.
 - A page that saves edits in `localStorage` under a fixed key keeps showing old saved text after it is regenerated with new content. `create_banner.py` derives `STORE_KEY` from a hash of the filled-in content.
 - A template comment that mentions the placeholder syntax (`{{ name }}`) is itself a placeholder to the renderer. Describe the syntax in words in the template.
+- In this container full Chrome's `--screenshot` (`/usr/bin/google-chrome` and `/opt/pw-browsers/chromium`, Chrome for Testing 153) hangs even on `data:text/html,hi`; Playwright's `chrome-headless-shell` (`/opt/pw-browsers/chromium_headless_shell-*`) works in ~1 s. Always pass a timeout to a headless-browser subprocess.
+- The container exports `CHROME_BIN`/`CHROME_PATH`/`PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome` (the Chrome that hangs). `create_banner.py` honours only its own `$CHROME`; tests that depend on browser lookup must clear such variables with `monkeypatch`.
 - JetBrains Mono turns `==` into one wide glyph; terminal mock-ups that show `== name ==` need `font-variant-ligatures: none`.
 
 ## Ditches — bad patterns or decisions to avoid

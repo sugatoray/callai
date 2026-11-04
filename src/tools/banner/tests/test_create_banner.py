@@ -282,3 +282,134 @@ def test_committed_banner_is_up_to_date():
     """`make maint.banner` must be re-run after changing the version, harnesses, config or template."""
     expected = cb.build_banner(CONFIG, TEMPLATE, REPO_ROOT, {})
     assert OUTPUT.read_text() == expected, "src/tools/banner/callai-banner.html is stale: run `make maint.banner`"
+
+
+# ── PNG export (headless Chrome) ────────────────────────────────────────────────
+
+FAKE_CHROME = """#!{python}
+import struct, sys, zlib
+args = sys.argv[1:]
+out = next(a.split("=", 1)[1] for a in args if a.startswith("--screenshot="))
+scale = float(next(a.split("=", 1)[1] for a in args if a.startswith("--force-device-scale-factor=")))
+w, h = (int(v) for v in next(a.split("=", 1)[1] for a in args if a.startswith("--window-size=")).split(","))
+w, h = int(w * scale) + {extra}, int(h * scale)
+ihdr = struct.pack(">IIBBBBB", w, h, 8, 6, 0, 0, 0)
+chunk = struct.pack(">I", len(ihdr)) + b"IHDR" + ihdr + struct.pack(">I", zlib.crc32(b"IHDR" + ihdr))
+open(out, "wb").write(b"\\x89PNG\\r\\n\\x1a\\n" + chunk)
+with open(out + ".argv", "w") as f:
+    f.write("\\n".join(args))
+"""
+
+
+def fake_chrome(tmp_path, extra=0):
+    path = tmp_path / "fake-chrome"
+    path.write_text(FAKE_CHROME.format(python=sys.executable, extra=extra))
+    path.chmod(0o755)
+    return path
+
+
+def test_chrome_command_defaults_to_2x_as_is(tmp_path):
+    html_path = tmp_path / "b.html"
+    argv = cb.chrome_command("chrome", html_path, tmp_path / "b.png")
+    assert argv[0] == "chrome"
+    assert "--force-device-scale-factor=2" in argv
+    assert "--window-size=1280,640" in argv
+    assert f"--screenshot={tmp_path / 'b.png'}" in argv
+    assert argv[-1] == html_path.resolve().as_uri() + "?export&bg=as-is&ink=auto"
+
+
+def test_chrome_command_background_ink_and_scale(tmp_path):
+    argv = cb.chrome_command(
+        "chrome", tmp_path / "b.html", tmp_path / "b.png", scale=4, background="transparent", ink="dark"
+    )
+    assert "--force-device-scale-factor=4" in argv
+    assert "--default-background-color=00000000" in argv
+    assert argv[-1].endswith("?export&bg=transparent&ink=dark")
+    with pytest.raises(cb.BannerError, match="background"):
+        cb.chrome_command("chrome", tmp_path / "b.html", tmp_path / "b.png", background="pink")
+
+
+def test_find_chrome(tmp_path, monkeypatch):
+    monkeypatch.setenv("CHROME_BIN", "/elsewhere/chrome")  # other tools' variable: ignored
+    exe = fake_chrome(tmp_path)
+    assert cb.find_chrome(str(exe)) == str(exe)
+    with pytest.raises(cb.BannerError, match="not found"):
+        cb.find_chrome(str(tmp_path / "missing"))
+    monkeypatch.setenv("CHROME", str(exe))
+    assert cb.find_chrome(None) == str(exe)
+    monkeypatch.delenv("CHROME")
+    monkeypatch.setattr(cb.shutil, "which", lambda name: None)
+    monkeypatch.setattr(cb, "CHROME_SEARCH", ())
+    with pytest.raises(cb.BannerError, match="--chrome"):
+        cb.find_chrome(None)
+
+
+def test_png_size(tmp_path):
+    exe = fake_chrome(tmp_path)
+    out = tmp_path / "x.png"
+    import subprocess
+
+    subprocess.run([str(exe), f"--screenshot={out}", "--force-device-scale-factor=2", "--window-size=10,5"], check=True)
+    assert cb.png_size(out) == (20, 10)
+    (tmp_path / "bad.png").write_bytes(b"nope")
+    with pytest.raises(cb.BannerError, match="not a PNG"):
+        cb.png_size(tmp_path / "bad.png")
+
+
+def test_main_png_writes_html_and_2x_png_by_default(tmp_path):
+    exe = fake_chrome(tmp_path)
+    png = tmp_path / "img" / "banner.png"
+    code, out = run_main(tmp_path, "--png", str(png), "--chrome", str(exe))
+    assert code == 0 and out.exists()
+    assert cb.png_size(png) == (2560, 1280)
+    argv = (png.parent / "banner.png.argv").read_text().splitlines()
+    assert argv[-1] == out.resolve().as_uri() + "?export&bg=as-is&ink=auto"
+
+
+def test_main_png_scale_option(tmp_path):
+    exe = fake_chrome(tmp_path)
+    png = tmp_path / "banner.png"
+    code, _ = run_main(tmp_path, "--png", str(png), "--chrome", str(exe), "--scale", "4", "--background", "white")
+    assert code == 0
+    assert cb.png_size(png) == (5120, 2560)
+
+
+def test_main_png_wrong_size_is_an_error(tmp_path, capsys):
+    exe = fake_chrome(tmp_path, extra=3)
+    code, _ = run_main(tmp_path, "--png", str(tmp_path / "banner.png"), "--chrome", str(exe))
+    assert code == 2
+    assert "2563×1280" in capsys.readouterr().err
+
+
+def test_main_png_and_check_conflict(tmp_path):
+    code, _ = run_main(tmp_path, "--png", str(tmp_path / "b.png"), "--check")
+    assert code == 2
+
+
+def test_default_png_path():
+    assert cb.DEFAULT_PNG == REPO_ROOT / "docs" / "assets" / "images" / "banner.png"
+
+
+def test_find_chrome_searches_names_then_globs(tmp_path, monkeypatch):
+    shell = tmp_path / "pw" / "chromium_headless_shell-1" / "chrome-headless-shell"
+    shell.parent.mkdir(parents=True)
+    shell.write_text("")
+    monkeypatch.delenv("CHROME", raising=False)
+    monkeypatch.setattr(cb.shutil, "which", lambda name: "/usr/bin/chromium" if name == "chromium" else None)
+    monkeypatch.setattr(cb, "CHROME_SEARCH", ("nope", str(tmp_path / "pw" / "*" / "chrome-headless-shell"), "chromium"))
+    assert cb.find_chrome(None) == str(shell)
+    monkeypatch.setattr(cb, "CHROME_SEARCH", ("nope", str(tmp_path / "none" / "*"), "chromium"))
+    assert cb.find_chrome(None) == "/usr/bin/chromium"
+
+
+def test_real_chrome_renders_banner_at_2x(tmp_path):
+    """Only with chrome-headless-shell: full Chrome's --screenshot can hang in containers and CI."""
+    try:
+        chrome = cb.find_chrome(None)
+    except cb.BannerError:
+        pytest.skip("no Chrome/Chromium installed")
+    if "headless-shell" not in Path(chrome).name:
+        pytest.skip(f"{chrome} is not chrome-headless-shell")
+    png = tmp_path / "banner.png"
+    cb.export_png(chrome, OUTPUT, png)
+    assert cb.png_size(png) == (2560, 1280)

@@ -1,7 +1,8 @@
 # callai-cli banner
 
 A maintainer tool that builds the callai-cli banner: a single, self-contained HTML page (1280 × 640) that
-you can edit in the browser and export as PNG. It is not part of the `callai` package; `MANIFEST.in` prunes
+you can edit in the browser and export as PNG. `make maint.banner.png` also renders it to
+`docs/assets/images/banner.png` at 2x (2560 × 1280). It is not part of the `callai` package; `MANIFEST.in` prunes
 `src/tools/`, so nothing here ships in the sdist or wheel.
 
 ## Files
@@ -12,6 +13,7 @@ you can edit in the browser and export as PNG. It is not part of the `callai` pa
 | `config.yaml` | Every value that goes into the banner. Edit this to change text, badges or the terminal demo. |
 | `create_banner.py` | The builder: fills the template from the config and the repository. Standard library only. |
 | `callai-banner.html` | The generated page (committed). **Don't edit by hand**: run `make maint.banner` instead. |
+| `../../../docs/assets/images/banner.png` | The 2x PNG of the page (committed), made by `make maint.banner.png`. |
 | `tests/` | Tests for the builder. They run with `make test`. |
 | `CHANGELOG.md` | Changes to this tool (the root `CHANGELOG.md` covers callai itself). |
 
@@ -23,14 +25,25 @@ Run these from the repository root.
 |---|---|
 | `make maint.banner` | Rebuild `callai-banner.html` from the template and `config.yaml`. |
 | `make maint.banner.check` | Write nothing; exit 1 if `callai-banner.html` is out of date. |
+| `make maint.banner.png` | Rebuild `callai-banner.html`, then render it to `docs/assets/images/banner.png` at **2x** with headless Chrome. |
 
-Both take these variables:
+All three take these variables:
 
 | variable | default | meaning |
 |---|---|---|
 | `BANNER_PACKAGE_VERSION` | *(empty)* | Show this version instead of the one in `pyproject.toml` (`--package-version`). |
 | `BANNER_ARGS` | *(empty)* | Extra arguments for `create_banner.py` (see [Command line](#command-line)). |
 | `BANNER_PYTHON` | `uv run --no-project python` | The Python that runs the builder (needs 3.11+ for `tomllib`). |
+
+`make maint.banner.png` also takes:
+
+| variable | default | meaning |
+|---|---|---|
+| `BANNER_PNG` | `docs/assets/images/banner.png` | Where to write the PNG. |
+| `BANNER_SCALE` | `2` | `1`, `2` or `4`: the PNG is 1280 × 640 times this. |
+| `BANNER_BACKGROUND` | `as-is` | `as-is`, `white`, `black` or `transparent`. |
+| `BANNER_INK` | `auto` | `auto` (dark text on white), `light` or `dark`. |
+| `BANNER_CHROME` | *(found automatically)* | The Chrome/Chromium executable (see [PNG export](#png-export)). |
 
 ```bash
 make maint.banner
@@ -42,6 +55,14 @@ make maint.banner BANNER_PACKAGE_VERSION=0.9.0
 
 ```bash
 make maint.banner BANNER_ARGS='--set tagline="Hello there" --harnesses codex,pi'
+```
+
+```bash
+make maint.banner.png
+```
+
+```bash
+make maint.banner.png BANNER_SCALE=4 BANNER_BACKGROUND=transparent BANNER_PNG=build/banner@4x.png
 ```
 
 ## How it works
@@ -112,9 +133,43 @@ python src/tools/banner/create_banner.py [options]
   --harnesses A,B,...      override harnesses
   --set KEY=VALUE          override any config key; list keys take comma-separated values (repeatable)
   --check                  don't write; exit 1 if the output is out of date
+
+PNG export (headless Chrome/Chromium):
+  --png [PATH]             also write a PNG (PATH defaults to docs/assets/images/banner.png)
+  --scale {1,2,4}          PNG scale (default: 2)
+  --background {as-is,white,black,transparent}
+                           PNG background (default: as-is)
+  --ink {auto,light,dark}  text colour (default: auto)
+  --chrome PATH            Chrome/Chromium executable (default: $CHROME, then a search)
 ```
 
-Exit codes: 0 on success (or an up-to-date `--check`), 1 if `--check` finds the page stale, 2 on an error.
+Exit codes: 0 on success (or an up-to-date `--check`), 1 if `--check` finds the page stale, 2 on an error
+(including a failed PNG export). `--check` and `--png` can't be combined.
+
+## PNG export
+
+`--png` (and `make maint.banner.png`) writes the HTML page first, then opens it in headless Chrome in the
+page's **export mode** (`callai-banner.html?export&bg=…&ink=…`). That mode shows only the banner at its
+native 1280 × 640, with no toolbar and no scaling. Chrome takes a screenshot at `--force-device-scale-factor`
+= the scale, so 2x gives 2560 × 1280. The builder then checks the PNG's size and stops with an error if
+it's wrong. The browser renders the page itself, so this doesn't use the in-page export library. It still
+needs internet access for the web fonts.
+
+The browser used is `--chrome` (or `BANNER_CHROME`), else `$CHROME`, else the first one found in this order:
+
+1. `chrome-headless-shell` on `PATH`, or one that Playwright installed (`~/.cache/ms-playwright`,
+   `~/Library/Caches/ms-playwright`, `/opt/pw-browsers`);
+2. `google-chrome`, `google-chrome-stable`, `chromium`, `chromium-browser` or `chrome` on `PATH`;
+3. the usual Chrome/Chromium install paths on macOS and Windows.
+
+The headless shell comes first because full Chrome's `--screenshot` can hang in containers. If it does,
+the export stops after 90 seconds. Install the shell with:
+
+```bash
+npx playwright install chromium-headless-shell
+```
+
+Each export runs in a throwaway browser profile, so edits saved in your own browser never end up in the PNG.
 
 ## Using the page
 
@@ -127,7 +182,8 @@ library (`html-to-image`, loaded from a CDN).
 - **Save HTML** downloads a copy of the page with your edits built in.
 - **Reset** throws away saved edits.
 - **Export PNG** uses the chosen **Background** (as is, white, black or transparent) and **Scale**
-  (1x = 1280 × 640, 2x, 4x). **Export all 12** downloads every background at every scale, named like
+  (1x = 1280 × 640, **2x by default**, 4x). The browser saves it to your downloads folder; use
+  `make maint.banner.png` to write `docs/assets/images/banner.png`. **Export all 12** downloads every background at every scale, named like
   `callai-banner-transparent@4x.png`.
 - **Ink** sets the text colour. **Auto** switches to dark text on white; choose **Dark** for a
   transparent PNG that will sit on a light background.

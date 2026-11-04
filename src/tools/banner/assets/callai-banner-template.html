@@ -10,6 +10,11 @@
 <link rel="stylesheet" crossorigin="anonymous"
       href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=JetBrains+Mono:wght@400;500;700;800&family=Public+Sans:wght@400;500;600&display=swap">
 <script src="https://cdn.jsdelivr.net/npm/html-to-image@1.11.11/dist/html-to-image.js"></script>
+<script>
+  // Export mode (?export[&bg=as-is|white|black|transparent][&ink=auto|light|dark]): only the banner, at
+  // its native 1280x640, for headless screenshots (create_banner.py --png).
+  if (new URLSearchParams(location.search).has('export')) document.documentElement.classList.add('bare');
+</script>
 <style>
   /* ───────────── Page (editor chrome, not part of the banner) ───────────── */
   :root {
@@ -211,6 +216,12 @@
   }
   .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
 
+  /* Export mode: nothing but the banner, unscaled, at the top-left corner. */
+  html.bare body { padding: 0; display: block; min-height: 0; background: transparent; overflow: hidden; }
+  html.bare .toolbar, html.bare .hint, html.bare .toast { display: none; }
+  html.bare .stage { width: 1280px; height: 640px; max-width: none; aspect-ratio: auto; border-radius: 0; background: none; }
+  html.bare .scaler { transform: none !important; }
+
   @media (max-width: 720px) {
     .toolbar .title { width: 100%; }
   }
@@ -317,7 +328,8 @@
   const state = { bg: 'as-is', ink: 'auto', scale: 2, editing: false };
 
   /* ── Fit banner to stage ── */
-  const fit = () => { scaler.style.transform = `scale(${stage.clientWidth / W})`; };
+  const bare = document.documentElement.classList.contains('bare');
+  const fit = () => { if (!bare) scaler.style.transform = `scale(${stage.clientWidth / W})`; };
   new ResizeObserver(fit).observe(stage); fit();
 
   /* ── Toast ── */
@@ -346,6 +358,12 @@
   wireSeg('bgSeg', 'bg', 'bg');
   wireSeg('inkSeg', 'ink', 'ink');
   wireSeg('scaleSeg', 'scale', 'scale', Number);
+  if (bare) {
+    const q = new URLSearchParams(location.search);
+    if (['as-is', 'white', 'black', 'transparent'].includes(q.get('bg'))) state.bg = q.get('bg');
+    if (['auto', 'light', 'dark'].includes(q.get('ink'))) state.ink = q.get('ink');
+    applyLook();
+  }
 
   /* ── Persistence ── */
   const editables = () => [...banner.querySelectorAll('[data-edit]')];

@@ -10,7 +10,7 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - All six harness CLIs are installed in the dev container (ephemeral). In a new session run `make install.harnesses` from the repository root; pinned versions are in the `Makefile`.
 - Network policy denies api.openai.com, api.x.ai and router.huggingface.co (cdnjs, jsDelivr and Google Fonts are allowed), and there are no model API keys, so non-claude fixtures come from `conformance/tools/stub_llm_server.py` (labelled STUB MODEL). `conformance/README.md` → "Recording without network" has every harness's config.
 - Python: develop on 3.11 (`.python-version`, `make test`); `make test.matrix` and CI (`.github/workflows/tests.yml`; runs on master pushes and manual dispatch, and on PRs labelled `ci::run-tests` via `run-tests-on-label.yml`) cover 3.11–3.14, all passing locally.
-- 563 tests (+13 skipped: 12 live, 1 runs only when PyYAML is installed), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
+- 574 tests (+13 skipped: 12 live, 1 runs only when PyYAML is installed), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
 - Maintainer tools live in `src/tools/` (not packaged). The first is the banner builder `src/tools/banner/` (CA-27), with its own `README.md` and `CHANGELOG.md`.
 
 ## What just happened
@@ -18,10 +18,12 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
   - The editable banner page (1280 × 640: Edit/Save toggle, PNG export as is/white/black/transparent at 1x/2x/4x via `html-to-image` 1.11.11 from jsDelivr) became the template `src/tools/banner/assets/callai-banner-template.html`. It was first committed at `docs/callai/images/callai-banner.html`, which no longer exists.
   - `src/tools/banner/create_banner.py` (stdlib only) fills the template's `{{ name }}` placeholders from `src/tools/banner/config.yaml`. Every value is double-quoted (a strict YAML-subset parser; a test checks it matches PyYAML). `"auto"` values come from `pyproject.toml` and `HARNESS_NAMES` (read with `ast`, not imported). Flags `--package-version` etc. and `--set KEY=VALUE` override the config; `--check` exits 1 when stale.
   - Output `src/tools/banner/callai-banner.html` is committed. `make maint.banner` (`BANNER_PACKAGE_VERSION=`, `BANNER_ARGS=`, `BANNER_PYTHON=`) rebuilds it; `make maint.banner.check` checks it.
+  - `make maint.banner.png` (`create_banner.py --png`) renders the page in headless Chrome (page's `?export` mode) to `docs/assets/images/banner.png`, **2x (2560×1280) by default** (`BANNER_SCALE`, `BANNER_BACKGROUND`, `BANNER_INK`, `BANNER_PNG`, `BANNER_CHROME`). The PNG is committed.
   - `MANIFEST.in` has `prune src/tools` + `recursive-exclude src/tools *` (owner's explicit request; see open threads). Root `CHANGELOG.md` has a one-line pointer to `src/tools/banner/CHANGELOG.md`.
 - Before that: CA-26 packaging (PR https://github.com/sugatoray/callai/pull/35): classifiers + `py.typed`, single-sourced version, `make pkg.*`, `MANIFEST.in`, opt-in CI (`ci::run-tests` label), `docs.yml` for GitHub Pages; and the agent skills from `sugatoray/aiskills` (PR https://github.com/sugatoray/callai/pull/30).
 
 ## Known issues / open threads
+- `docs/assets/images/banner.png` is **not** covered by the up-to-date test (PNG bytes aren't reproducible across browsers/fonts). Re-run `make maint.banner.png` after `make maint.banner` changes the page.
 - **Bumping the version in `pyproject.toml` now fails `test_committed_banner_is_up_to_date` until `make maint.banner` is run** (same for changing `HARNESS_NAMES`, `config.yaml` or the template). Deliberate drift guard; the owner was told it can be dropped.
 - `uv build` warns "no previously-included … matching 'src/tools'": setuptools never packs `src/tools` (not a `callai*` package), so the two `MANIFEST.in` lines have no effect today. The owner confirmed (2026-11-04): keep them as a failsafe; don't remove them to silence the warnings.
 - CA-26 open items still stand: create the `ci::run-tests` label, run `docs.yml` once on master, confirm both workflows on GitHub, try `pkg.publish` on TestPyPI.

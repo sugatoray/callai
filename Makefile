@@ -8,6 +8,7 @@
 #   make install.<tool>        install one (tool = the callai --name value)
 #   make docs.html             bundle docs/callai/ into one HTML page (build/docs.html)
 #   make maint.banner          rebuild src/tools/banner/callai-banner.html from its template + config.yaml
+#   make maint.banner.png      ...and render it to docs/assets/images/banner.png (2x, headless Chrome)
 #   make test                  run the tests on the pinned development Python (.python-version)
 #   make test.matrix           run the tests on every supported Python (PYTHON_VERSIONS)
 #   make pkg.build             build the sdist + wheel into dist/ (uv build)
@@ -35,7 +36,7 @@ GROK_VERSION := 1.0.70
 
 HARNESSES := claude-code codex opencode pi hermes grok
 
-.PHONY: help test test.matrix docs.html maint.banner maint.banner.check pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
+.PHONY: help test test.matrix docs.html maint.banner maint.banner.check maint.banner.png pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
 
 help: ## Show this help
 	@echo "Targets:"
@@ -110,6 +111,7 @@ docs.html: ## Bundle docs/callai/ into one HTML page with tabs, page list, outli
 # Override on the command line, e.g.
 #   make maint.banner BANNER_PACKAGE_VERSION=0.9.0
 #   make maint.banner BANNER_ARGS='--set tagline="Hello" --harnesses codex,pi'
+#   make maint.banner.png BANNER_SCALE=4 BANNER_BACKGROUND=transparent BANNER_PNG=build/banner@4x.png
 BANNER_PYTHON ?= uv run --no-project python
 BANNER_PACKAGE_VERSION ?=
 BANNER_ARGS ?=
@@ -120,6 +122,16 @@ maint.banner: ## Rebuild src/tools/banner/callai-banner.html from the template a
 
 maint.banner.check: ## Exit 1 if src/tools/banner/callai-banner.html is out of date
 	$(BANNER_CMD) --check
+
+# PNG of the banner via headless Chrome (prefers chrome-headless-shell; BANNER_CHROME or $$CHROME to choose).
+BANNER_PNG ?= docs/assets/images/banner.png
+BANNER_SCALE ?= 2
+BANNER_BACKGROUND ?= as-is
+BANNER_INK ?= auto
+BANNER_CHROME ?=
+
+maint.banner.png: ## Rebuild the banner and render it to BANNER_PNG (default docs/assets/images/banner.png, 2x)
+	$(BANNER_CMD) --png $(BANNER_PNG) --scale $(BANNER_SCALE) --background $(BANNER_BACKGROUND) --ink $(BANNER_INK) $(if $(BANNER_CHROME),--chrome "$(BANNER_CHROME)")
 
 install.harnesses: $(addprefix install.,$(HARNESSES)) ## Install every harness CLI callai supports
 	@echo "All harnesses installed: $(HARNESSES)"

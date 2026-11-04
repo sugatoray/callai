@@ -3,10 +3,13 @@
 Usage (from the repository root; ``make maint.banner`` runs this)::
 
     python src/tools/banner/create_banner.py [--package-version X.Y.Z] [--set KEY=VALUE ...] [--check]
+    python src/tools/banner/create_banner.py --png [PATH] [--scale 2] [--background as-is]
 
 Values set to ``"auto"`` in the config are read from the repository: the package name, version,
 Python requirement, license and source URL from ``pyproject.toml``, and the harness names from
 ``HARNESS_NAMES`` in ``src/callai/adapters/__init__.py``. Command-line flags override the config.
+``--png`` also screenshots the page with headless Chrome/Chromium (default: 2x, as
+``docs/assets/images/banner.png``).
 
 Maintainer tool only: it lives outside the ``callai`` package and is excluded from the sdist and
 wheel. Standard library only, like callai itself, so the config is read with a small parser for a
@@ -17,11 +20,17 @@ from __future__ import annotations
 
 import argparse
 import ast
+import glob
 import hashlib
 import html
 import json
+import os
 import re
+import shutil
+import struct
+import subprocess
 import sys
+import tempfile
 import tomllib
 from pathlib import Path
 
@@ -30,6 +39,34 @@ REPO_ROOT = BANNER_DIR.parents[2]
 DEFAULT_CONFIG = BANNER_DIR / "config.yaml"
 DEFAULT_TEMPLATE = BANNER_DIR / "assets" / "callai-banner-template.html"
 DEFAULT_OUTPUT = BANNER_DIR / "callai-banner.html"
+DEFAULT_PNG = REPO_ROOT / "docs" / "assets" / "images" / "banner.png"
+
+#: The banner's size in CSS pixels; a PNG at scale N is N times this.
+BANNER_SIZE = (1280, 640)
+SCALES = (1, 2, 4)
+DEFAULT_SCALE = 2
+BACKGROUNDS = ("as-is", "white", "black", "transparent")
+INKS = ("auto", "light", "dark")
+#: Where to look for a browser when --chrome and $CHROME are unset, in order. Plain names are looked up on
+#: PATH; entries with a path separator are glob patterns (newest match first). chrome-headless-shell comes
+#: first: full Chrome's ``--screenshot`` can hang in containers (seen with Chrome for Testing 153).
+CHROME_SEARCH = (
+    "chrome-headless-shell",
+    "~/.cache/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell",
+    "~/Library/Caches/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell",
+    "/opt/pw-browsers/chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell",
+    "google-chrome",
+    "google-chrome-stable",
+    "chromium",
+    "chromium-browser",
+    "chrome",
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+    "/Applications/Chromium.app/Contents/MacOS/Chromium",
+    "C:/Program Files/Google/Chrome/Application/chrome.exe",
+    "C:/Program Files (x86)/Google/Chrome/Application/chrome.exe",
+    "/opt/pw-browsers/chromium",
+)
+CHROME_TIMEOUT = 90  # seconds
 
 AUTO = "auto"
 #: Values that ``"auto"`` reads from the repository.
@@ -436,6 +473,148 @@ def build_banner(config_path: Path, template_path: Path, root: Path, overrides: 
     return render(template, build_context(values))
 
 
+# ── PNG export ──────────────────────────────────────────────────────────────────
+
+
+def find_chrome(explicit: str | None) -> str:
+    """Locate a Chrome or Chromium executable.
+
+    Args:
+        explicit: A path or command name from ``--chrome``; if unset, ``$CHROME``,
+            then the first hit in :data:`CHROME_SEARCH`.
+
+    Returns:
+        The executable's path.
+
+    Raises:
+        BannerError: If the given executable doesn't exist, or none is found.
+    """
+    given = explicit or os.environ.get("CHROME")
+    if given:
+        if Path(given).is_file():
+            return given
+        found = shutil.which(given)
+        if found:
+            return found
+        raise BannerError(f"Chrome executable not found: {given}")
+    for entry in CHROME_SEARCH:
+        if "/" in entry or "\\" in entry:
+            hits = sorted(glob.glob(os.path.expanduser(entry)), reverse=True)
+            found = next((h for h in hits if Path(h).is_file()), None)
+        else:
+            found = shutil.which(entry)
+        if found:
+            return found
+    raise BannerError("no Chrome or Chromium found: install one, or pass --chrome PATH (or set $CHROME)")
+
+
+def chrome_command(
+    chrome: str,
+    html_path: Path,
+    png_path: Path,
+    scale: int = DEFAULT_SCALE,
+    background: str = "as-is",
+    ink: str = "auto",
+    user_data_dir: Path | None = None,
+) -> list[str]:
+    """The headless Chrome command that screenshots the banner in the page's export mode.
+
+    Args:
+        chrome: The Chrome/Chromium executable.
+        html_path: The banner page.
+        png_path: Where Chrome writes the screenshot.
+        scale: Device pixel ratio; the PNG is ``scale`` times 1280 × 640.
+        background: One of :data:`BACKGROUNDS`.
+        ink: One of :data:`INKS`.
+        user_data_dir: A throwaway profile directory, so saved browser edits never leak in.
+
+    Returns:
+        The argv list.
+
+    Raises:
+        BannerError: On an unknown scale, background or ink.
+    """
+    if scale not in SCALES:
+        raise BannerError(f"scale must be one of {', '.join(map(str, SCALES))}, got {scale}")
+    if background not in BACKGROUNDS:
+        raise BannerError(f"background must be one of {', '.join(BACKGROUNDS)}, got {background!r}")
+    if ink not in INKS:
+        raise BannerError(f"ink must be one of {', '.join(INKS)}, got {ink!r}")
+    width, height = BANNER_SIZE
+    argv = [chrome, "--headless=new", "--disable-gpu", "--hide-scrollbars", "--no-first-run"]
+    argv += ["--no-default-browser-check", "--default-background-color=00000000"]
+    if user_data_dir is not None:
+        argv.append(f"--user-data-dir={user_data_dir}")
+    if getattr(os, "geteuid", lambda: 1)() == 0:
+        argv.append("--no-sandbox")  # Chrome refuses to run as root with its sandbox (containers, CI)
+    argv += [
+        f"--window-size={width},{height}",
+        f"--force-device-scale-factor={scale}",
+        "--virtual-time-budget=15000",  # let web fonts load before the screenshot
+        f"--screenshot={png_path}",
+        html_path.resolve().as_uri() + f"?export&bg={background}&ink={ink}",
+    ]
+    return argv
+
+
+def png_size(path: Path) -> tuple[int, int]:
+    """Read a PNG's pixel size from its header.
+
+    Args:
+        path: The PNG file.
+
+    Returns:
+        ``(width, height)``.
+
+    Raises:
+        BannerError: If the file isn't a PNG.
+    """
+    head = path.read_bytes()[:24]
+    if len(head) < 24 or head[:8] != b"\x89PNG\r\n\x1a\n" or head[12:16] != b"IHDR":
+        raise BannerError(f"{path} is not a PNG")
+    return struct.unpack(">II", head[16:24])
+
+
+def export_png(
+    chrome: str,
+    html_path: Path,
+    png_path: Path,
+    scale: int = DEFAULT_SCALE,
+    background: str = "as-is",
+    ink: str = "auto",
+) -> None:
+    """Screenshot the banner page to a PNG with headless Chrome, and check its size.
+
+    Args:
+        chrome: The Chrome/Chromium executable.
+        html_path: The banner page.
+        png_path: The PNG to write (parent folders are created).
+        scale: 1, 2 or 4.
+        background: One of :data:`BACKGROUNDS`.
+        ink: One of :data:`INKS`.
+
+    Raises:
+        BannerError: If Chrome fails, times out, writes nothing, or writes the wrong size.
+    """
+    png_path.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="callai-banner-chrome-") as profile:
+        argv = chrome_command(chrome, html_path, png_path, scale, background, ink, Path(profile))
+        try:
+            proc = subprocess.run(argv, capture_output=True, text=True, timeout=CHROME_TIMEOUT, check=False)
+        except subprocess.TimeoutExpired:
+            raise BannerError(
+                f"{chrome} timed out after {CHROME_TIMEOUT} s; try chrome-headless-shell "
+                "(npx playwright install chromium-headless-shell) via --chrome"
+            ) from None
+    if proc.returncode != 0 or not png_path.exists():
+        detail = (proc.stderr or proc.stdout).strip().splitlines()[-3:]
+        raise BannerError(f"Chrome failed (exit {proc.returncode}): {' | '.join(detail)}")
+    want = (BANNER_SIZE[0] * scale, BANNER_SIZE[1] * scale)
+    got = png_size(png_path)
+    if got != want:
+        raise BannerError(f"{png_path}: expected {want[0]}×{want[1]} pixels, got {got[0]}×{got[1]}")
+
+
 # ── Command line ────────────────────────────────────────────────────────────────
 
 
@@ -483,7 +662,25 @@ def main(argv: list[str] | None = None) -> int:
         "--set", action="append", default=[], metavar="KEY=VALUE", help="override any config key (repeatable)"
     )
     parser.add_argument("--check", action="store_true", help="don't write; exit 1 if the output is out of date")
+    png = parser.add_argument_group("PNG export (headless Chrome/Chromium)")
+    png.add_argument(
+        "--png",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_PNG,
+        metavar="PATH",
+        help=f"also write a PNG of the banner (PATH defaults to {DEFAULT_PNG.relative_to(REPO_ROOT)})",
+    )
+    png.add_argument(
+        "--scale", type=int, choices=SCALES, default=DEFAULT_SCALE, help="PNG scale (default: %(default)s)"
+    )
+    png.add_argument("--background", choices=BACKGROUNDS, default="as-is", help="PNG background (default: %(default)s)")
+    png.add_argument("--ink", choices=INKS, default="auto", help="text colour (default: %(default)s)")
+    png.add_argument("--chrome", metavar="PATH", help="Chrome/Chromium executable (default: $CHROME, then PATH)")
     ns = parser.parse_args(argv)
+    if ns.check and ns.png:
+        print("create_banner: error: --check and --png can't be combined", file=sys.stderr)
+        return 2
 
     try:
         overrides = dict(_parse_set(item) for item in ns.set)
@@ -506,6 +703,14 @@ def main(argv: list[str] | None = None) -> int:
     ns.output.parent.mkdir(parents=True, exist_ok=True)
     ns.output.write_text(page, encoding="utf-8")
     print(f"wrote {ns.output}")
+    if ns.png:
+        try:
+            export_png(find_chrome(ns.chrome), ns.output, ns.png, ns.scale, ns.background, ns.ink)
+        except BannerError as exc:
+            print(f"create_banner: error: {exc}", file=sys.stderr)
+            return 2
+        width, height = png_size(ns.png)
+        print(f"wrote {ns.png} ({width}×{height}, {ns.scale}x, background {ns.background})")
     return 0
 
 
