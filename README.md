@@ -148,6 +148,11 @@ make docs.html                     # the docs as one HTML page with tabs and a t
 uv sync --extra test --extra dev   # Python >= 3.11, no runtime dependencies; develops on the pinned 3.11 (.python-version)
 make test                          # tests + coverage gate (95%) on the pinned Python (same as: uv run pytest)
 make test.matrix                   # the same on every supported Python, 3.11-3.14 (or PYTHON_VERSIONS=3.13)
+make pkg.build                     # sdist + wheel -> dist/ (uv build)
+make pkg.publish                   # build, then upload to PyPI (uv publish; set UV_PUBLISH_TOKEN)
+make pkg.install.e                 # editable install of this checkout into .venv
+make pkg.install.local             # install callai-cli from the built dist/
+make pkg.install.pypi              # install callai-cli from PyPI (PKG_VERSION=0.8.0 to pin)
 uv run ruff check . && uv run ruff format --check .
 uv run interrogate src             # docstring coverage (100%)
 uv run callai --version

@@ -9,6 +9,11 @@
 #   make docs.html             bundle docs/callai/ into one HTML page (build/docs.html)
 #   make test                  run the tests on the pinned development Python (.python-version)
 #   make test.matrix           run the tests on every supported Python (PYTHON_VERSIONS)
+#   make pkg.build             build the sdist + wheel into dist/ (uv build)
+#   make pkg.publish           build, then upload dist/ to PyPI (uv publish; needs UV_PUBLISH_TOKEN)
+#   make pkg.install.e         editable install of this checkout into .venv
+#   make pkg.install.local     install callai-cli from the built dist/ (builds first)
+#   make pkg.install.pypi      install callai-cli from PyPI
 
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
@@ -29,7 +34,7 @@ GROK_VERSION := 1.0.70
 
 HARNESSES := claude-code codex opencode pi hermes grok
 
-.PHONY: help test test.matrix docs.html install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
+.PHONY: help test test.matrix docs.html pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
 
 help: ## Show this help
 	@echo "Targets:"
@@ -49,6 +54,48 @@ test.matrix: ## Run the tests on every supported Python, each isolated (PYTHON_V
 	  echo "== Python $$py"; \
 	  uv run --isolated --python $$py --extra test pytest -q; \
 	done
+
+# Packaging. Everything goes through uv. Every knob is a variable, override on the command line, e.g.
+#   make pkg.install.pypi PKG_VERSION=0.8.0
+#   make pkg.publish PUBLISH_URL=https://test.pypi.org/legacy/ PUBLISH_CHECK_URL=https://test.pypi.org/simple/
+#   make pkg.install.e VENV=/tmp/v
+PKG_NAME ?= callai-cli
+# optional pin: installs callai-cli==PKG_VERSION
+PKG_VERSION ?=
+PKG_SPEC ?= $(PKG_NAME)$(if $(PKG_VERSION),==$(PKG_VERSION))
+DIST_DIR ?= dist
+# environment the pkg.install.* targets install into
+VENV ?= .venv
+VENV_PYTHON ?= $(VENV)/bin/python
+# optional --index-url for pkg.install.pypi (e.g. TestPyPI)
+PYPI_INDEX ?=
+# optional upload endpoint (default: PyPI)
+PUBLISH_URL ?=
+# optional index to verify the upload against
+PUBLISH_CHECK_URL ?=
+UV_BUILD ?= uv build --out-dir $(DIST_DIR)
+UV_PUBLISH ?= uv publish
+UV_VENV ?= uv venv --allow-existing
+UV_PIP_INSTALL ?= uv pip install --python $(VENV_PYTHON)
+
+pkg.build: require.uv ## Build the sdist and wheel into DIST_DIR (default dist/)
+	rm -rf $(DIST_DIR)
+	$(UV_BUILD)
+
+pkg.publish: pkg.build ## Build, then upload DIST_DIR to PyPI (UV_PUBLISH_TOKEN, or PUBLISH_URL for another index)
+	$(UV_PUBLISH) $(if $(PUBLISH_URL),--publish-url $(PUBLISH_URL)) $(if $(PUBLISH_CHECK_URL),--check-url $(PUBLISH_CHECK_URL)) $(DIST_DIR)/*
+
+pkg.install.e: require.uv ## Editable install of this checkout (with the dev/test extras) into VENV
+	$(UV_VENV) $(VENV)
+	$(UV_PIP_INSTALL) -e ".[test,dev]"
+
+pkg.install.local: pkg.build ## Install callai-cli from the built DIST_DIR into VENV (no index lookups)
+	$(UV_VENV) $(VENV)
+	$(UV_PIP_INSTALL) --reinstall-package $(PKG_NAME) --no-index --find-links $(DIST_DIR) $(PKG_SPEC)
+
+pkg.install.pypi: require.uv ## Install callai-cli from PyPI into VENV (PYPI_INDEX for another index)
+	$(UV_VENV) $(VENV)
+	$(UV_PIP_INSTALL) --reinstall-package $(PKG_NAME) $(if $(PYPI_INDEX),--index-url $(PYPI_INDEX)) $(PKG_SPEC)
 
 # Single-page HTML docs. Links to files outside docs/ point at GitHub on DOCS_REF (default: this branch).
 DOCS_HTML ?= build/docs.html
