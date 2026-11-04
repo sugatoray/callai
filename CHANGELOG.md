@@ -15,12 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Maintainer banner for callai-cli: `make maint.banner` builds `src/tools/banner/callai-banner.html` from
-  `src/tools/banner/assets/callai-banner-template.html` and `src/tools/banner/config.yaml` (every value
-  double-quoted; `"auto"` values come from `pyproject.toml` and `HARNESS_NAMES`). Flags such as
-  `--package-version` override the config (`make maint.banner BANNER_PACKAGE_VERSION=0.9.0`). The page has an
-  Edit/Save toggle and exports PNGs on its own, white, black or transparent background at 1x, 2x or 4x. A test
-  fails while the committed page is stale. `src/tools/` is excluded from the sdist and wheel.
+- A maintainer tool that builds the callai-cli banner (`make maint.banner`); see
+  [`src/tools/banner/CHANGELOG.md`](src/tools/banner/CHANGELOG.md). It is not packaged.
 - Tested on Python 3.11, 3.12, 3.13 and 3.14. `make test.matrix` runs the suite once per version, each in an
   isolated environment that uv creates (set `PYTHON_VERSIONS` to choose); `make test` runs it on the
   development Python, now pinned to 3.11 in `.python-version`. A GitHub Actions workflow
