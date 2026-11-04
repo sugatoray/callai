@@ -4,13 +4,13 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 
 ## Current state
 - Repository `sugatoray/callai` is now the primary home (imported from `sugatoray/devx` `src/experiments/expt_callai` at 0.8.0; the devx copy is no longer where it is developed). The import branch `feat/import-callai` was merged and deleted. Version **0.8.0** (CHANGELOG 0.1.0…0.5.0 cut 2026-10-30, 0.6.0 on 2026-10-31, 0.7.0 (docs) and 0.8.0 (`make docs.html`) on 2026-11-01; no git tags yet). `[Unreleased]` is empty.
-- CA-0…CA-15c, CA-19…CA-24 done. Remaining backlog is Later only: CA-16 TypeScript port, CA-17/18 Rust.
+- CA-0…CA-15c, CA-19…CA-27 done. Remaining backlog is Later only: CA-16 TypeScript port, CA-17/18 Rust.
 - CLI: `callai -n HARNESS_NAME|a/b|a,b|all -p PROMPT [...]`, `-o text|json|stream-json|raw`, `--resume ID`/`--continue`; Python API `callai.run(...)`.
 - User docs: `docs/callai/` (32 pages, 5 SVGs, `llms.txt`/`llms-full.txt`), written with the `/create-lib-docs` skill (published in `sugatoray/aiskills`). `make docs.html` bundles them into `build/docs.html` (gitignored).
 - All six harness CLIs are installed in the dev container (ephemeral). In a new session run `make install.harnesses` from the repository root; pinned versions are in the `Makefile`.
 - Network policy denies api.openai.com, api.x.ai and router.huggingface.co (cdnjs, jsDelivr and Google Fonts are allowed), and there are no model API keys, so non-claude fixtures come from `conformance/tools/stub_llm_server.py` (labelled STUB MODEL). `conformance/README.md` → "Recording without network" has every harness's config.
 - Python: develop on 3.11 (`.python-version`, `make test`); `make test.matrix` and CI (`.github/workflows/tests.yml`; runs on master pushes and manual dispatch, and on PRs labelled `ci::run-tests` via `run-tests-on-label.yml`) cover 3.11–3.14, all passing locally.
-- 563 tests (+13 skipped: 12 live, 1 needs PyPI-installed PyYAML), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
+- 563 tests (+13 skipped: 12 live, 1 runs only when PyYAML is installed), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~35–42 s (fan-out timing tests sleep). `testpaths` now includes `src/tools/banner/tests`.
 - Maintainer tools live in `src/tools/` (not packaged). The first is the banner builder `src/tools/banner/` (CA-27), with its own `README.md` and `CHANGELOG.md`.
 
 ## What just happened
