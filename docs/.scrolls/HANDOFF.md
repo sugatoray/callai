@@ -23,7 +23,7 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 
 ## Known issues / open threads
 - **Bumping the version in `pyproject.toml` now fails `test_committed_banner_is_up_to_date` until `make maint.banner` is run** (same for changing `HARNESS_NAMES`, `config.yaml` or the template). Deliberate drift guard; the owner was told it can be dropped.
-- `uv build` warns "no previously-included … matching 'src/tools'": setuptools never packs `src/tools` (not a `callai*` package), so the two `MANIFEST.in` lines have no effect today. Kept because the owner asked for them; they matter if setuptools-scm is ever added.
+- `uv build` warns "no previously-included … matching 'src/tools'": setuptools never packs `src/tools` (not a `callai*` package), so the two `MANIFEST.in` lines have no effect today. The owner confirmed (2026-11-04): keep them as a failsafe; don't remove them to silence the warnings.
 - CA-26 open items still stand: create the `ci::run-tests` label, run `docs.yml` once on master, confirm both workflows on GitHub, try `pkg.publish` on TestPyPI.
 - When a docs page is added, link it from a `### Section` list in `docs/callai/README.md`, then re-run `check_docs.py`, `build_llms_txt.py` (skill scripts) and `make docs.html`.
 - Live tests verified only for claude-code (no model access for the others here).
