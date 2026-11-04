@@ -48,6 +48,12 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - Don't assert on argparse's `--help` layout: Python 3.13 changed it (`-n, --name X` instead of `-n X, --name X`). Check `parser._actions` option strings, and run `make test.matrix` (every supported Python) before a release.
 - The project targets Python 3.11 (`uv run`), even though system `python3` is 3.13: no backslashes inside f-string `{…}` (3.12+ only). Run new scripts under `uv run` before committing.
 - If a CDN is blocked, a page that loads libraries from it renders blank in a local Playwright check. Ask the owner to allow the host (an Allowed domains change reached this running session after a few minutes; launch Chromium with `proxy: { server: process.env.HTTPS_PROXY }`), or route the CDN URLs to local copies from `npm pack` (marked's `marked.min.js`; for highlight.js use `@highlightjs/cdn-assets`, since the `highlight.js` package has no browser build) at the same versions.
+- The PyPI distribution is `callai-cli`, the import package is `callai`: `importlib.metadata.version()` takes the **distribution** name. Using `"callai"` raised `PackageNotFoundError` at import and broke every test module. Don't regex `__version__` out of `__init__.py` either (it's no longer a literal); read `pyproject.toml` in build scripts.
+- Only valid trove classifiers (https://pypi.org/classifiers/) — PyPI rejects an upload with an unknown one (`AI Engineers`, `Agentic Harness`, `Software Development :: CLI` are not real). `Typing :: Typed` needs a `py.typed` file listed in `package-data`.
+- Changing `[tool.uv]` (e.g. `exclude-newer`) makes `uv sync --locked` fail until `uv lock` is re-run and committed.
+- A reusable workflow evaluates `concurrency` itself, with the *caller's* `github.workflow`/`github.ref`: give the caller a different group than the called workflow, or the callee cancels itself.
+- `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards.
+- A `workflow_dispatch` workflow only shows its "Run workflow" button once the file is on the default branch, and the `github-pages` environment normally refuses deploys from other branches. Give the workflow a build-only input if it must run from any branch.
 
 ## Ditches — bad patterns or decisions to avoid
 Bad patterns or decisions to never take, and why they were rejected.

@@ -1,0 +1,59 @@
+# Publishes the user docs (docs/callai/, bundled by `make docs.html` into one page) on GitHub Pages.
+# Same pipeline shape as sugatoray/newsletters: build on master, upload a Pages artifact, deploy it
+# with actions/deploy-pages. There is no gh-pages branch; the site is deployed straight from master.
+#
+# One-time setup: Settings -> Pages -> Build and deployment -> Source: "GitHub Actions".
+name: docs
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "docs/callai/**"
+      - "docs/site/**"
+      - "pyproject.toml"
+      - "Makefile"
+      - ".github/workflows/docs.yml"
+  # Manual run on any branch (pick it in "Use workflow from"). Untick "deploy" to only build the site
+  # and keep it as a downloadable artifact (Pages deploys are limited by the github-pages environment).
+  workflow_dispatch:
+    inputs:
+      deploy:
+        description: "Deploy to GitHub Pages (untick to only build)"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      # DOCS_REF: links from the docs to files outside docs/ point at GitHub on the branch being built.
+      - run: make docs.html DOCS_HTML=site/index.html DOCS_REF=${{ github.ref_name }}
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    if: github.event_name != 'workflow_dispatch' || inputs.deploy
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

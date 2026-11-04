@@ -18,6 +18,20 @@ from .cli import main
 from .errors import CallaiError, HarnessNotFound, HarnessTimeout, Interrupted, UsageError
 from .result import Result
 
-__all__ = ["CallaiError", "HarnessNotFound", "HarnessTimeout", "Interrupted", "Result", "UsageError", "main", "run"]
+__all__ = [
+    "CallaiError",
+    "HarnessNotFound",
+    "HarnessTimeout",
+    "Interrupted",
+    "Result",
+    "UsageError",
+    "main",
+    "run",
+]
 
-__version__ = "0.8.0"
+from importlib import metadata
+
+try:
+    __version__ = metadata.version("callai-cli")  # the distribution name, not the import name
+except metadata.PackageNotFoundError:  # pragma: no cover - running from a source tree that was never installed
+    __version__ = "0.0.0+unknown"

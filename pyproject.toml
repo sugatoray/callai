@@ -12,13 +12,46 @@ authors = [
 ]
 readme = {file = "README.md", content-type = "text/markdown"}
 license = "Apache-2.0"
-classifiers = [  # the Python versions `make test.matrix` and CI test on
+classifiers = [
+    ##########################################################################################
+    # source:
+    # - adding classifiers to pyproject.toml:
+    #   - https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#classifiers
+    # - List of classifiers: https://pypi.org/classifiers/
+    # How mature is this project? Common values are:
+    # - "3 - Alpha"
+    # - "4 - Beta"
+    # - "5 - Production/Stable"
+    ##########################################################################################
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+
+    "Operating System :: OS Independent",
+    #"Operating System :: POSIX :: Linux",
+    #"Operating System :: MacOS :: MacOS X",
+    #"Operating System :: Microsoft :: Windows",
+
+    # the Python versions `make test.matrix` and CI test on
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3 :: Only",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
     "Programming Language :: Python :: 3.14",
+
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Build Tools",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Utilities",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
+
+    ## If an internal or private package, add the following classifier:
+    # "Private :: Do Not Upload",
 ]
 dependencies = []  # stdlib-only by design (DESIGN.md §4)
 
@@ -39,6 +72,9 @@ callai = "callai.cli:main"
 where = ["src"]
 include = ["callai*"]  # exclude the top-level src/tests/ package from the built wheel
 namespaces = false
+
+[tool.setuptools.package-data]
+callai = ["py.typed"]  # PEP 561 marker, matches the "Typing :: Typed" classifier
 
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
@@ -84,3 +120,28 @@ fail-under = 100
 style = "google"
 verbose = 1
 exclude = ["src/tests", "build", "dist", ".venv"]
+
+[tool.uv]
+#########################################################################################
+## notes:
+## To ensure uv does not download or upgrade to libraries released in the last 7 days,
+## use the "exclude-newer" setting. This acts as a "cooldown" period, preventing the
+## installation of freshly released packages.
+## source:
+## - https://stackoverflow.com/a/79874496/8474894
+## - https://simonwillison.net/2024/May/10/uv-pip-install-exclude-newer/
+##
+## Either set it globally for all uv commands or use it on a per-command basis.
+## $ uv lock --exclude-newer "7 days"
+## or
+## $ uv pip install -r requirements.in --exclude-newer "7 days"
+##
+## Allow this specific package to be newer
+# exclude-newer-package = { "some-package" = "0 days" }
+#########################################################################################
+exclude-newer = "5 days"
+
+# [tool.uv.exclude-newer-package]
+# "gitpython" = "2 days"
+# "pydantic" = "2 days"
+# "marimo" = "1 days"

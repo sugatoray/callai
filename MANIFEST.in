@@ -1,0 +1,15 @@
+include README.md
+include src/callai/py.typed  # marker file for PEP 561
+
+include CHANGELOG.md
+include LICENSE
+
+include MANIFEST.in
+include pyproject.toml
+include uv.lock
+include .python-version
+
+# Not listed on purpose: tests (src/tests), conformance/, docs/, build/, dist/, .github/, .agents/,
+# .claude/, Makefile, the agent/scrolls files. Without a VCS plugin (setuptools-scm) setuptools only
+# packs the files above plus the packages found in src/ (callai*), so they stay out of the sdist.
+# If a plugin is added later, restore `recursive-exclude` lines for them.

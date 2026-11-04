@@ -1,12 +1,16 @@
 # Runs the same commands as local development: `make test.matrix` once per supported Python,
 # plus lint and docstring checks on the pinned development Python (.python-version).
+#
+# Triggers: every push to master, a manual run (Actions tab -> tests -> Run workflow, pick any branch),
+# and workflow_call from run-tests-on-label.yml, which runs it on a pull request carrying the
+# `ci::run-tests` label. Branch pushes and PR commits do not start it on their own.
 name: tests
 
 on:
   push:
     branches: [master]
-  pull_request:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read
