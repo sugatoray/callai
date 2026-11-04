@@ -9,6 +9,29 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- Two install commands on the banner, `pip install callai-cli` and `uv tool install callai-cli`, in one of two
+  layouts:
+  - **option A**, `install_style: "box"` (the default): one box, a line per command, up to 3;
+  - **option B**, `install_style: "chips"`: a chip per command, stacked, up to 2.
+- Ways to pick the layout: `--install-style`, `make … BANNER_INSTALL_STYLE=chips`, and an **Install: Box / Chips**
+  switch in the page's toolbar that flips it live and keeps edits.
+- Example images of both layouts, `assets/option_a_box.png` and `assets/option_b_chip.png` (1x), shown in
+  `README.md`.
+  - `--examples [DIR]` writes them, and `make maint.banner.png` (every banner image refresh) re-renders them.
+  - `make maint.banner.examples` does only that.
+  - Export mode accepts `&install=box|chips`.
+
+### Changed
+
+- `install_command` (one string) became `install_commands` (a list). The old key is now an error that names
+  the new one.
+
+### Fixed
+
+- Ligatures are off in the install commands too, so `==` in a pinned version shows as two characters.
+
 ## [0.9.0] - 2026-11-04
 
 ### Added

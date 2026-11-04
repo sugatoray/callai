@@ -112,7 +112,10 @@ track the repository (version, Python requirement, license and URL from `pyproje
 registry). `make maint.banner BANNER_PACKAGE_VERSION=X.Y.Z` shows another version. In a browser the page has an
 Edit/Save toggle (saved per build in browser storage), Save HTML, Reset, and PNG export with the banner's own,
 white, black or transparent background at 1x, 2x (default) or 4x ("Export all 12" for every combination).
-`make maint.banner.png` renders it with headless Chrome to `docs/assets/images/banner_2x.png` at 2x. Details:
+`make maint.banner.png` renders it with headless Chrome to `docs/assets/images/banner_2x.png` at 2x, plus 1x
+examples of the two install-command layouts (`install_style`: `box`, option A, default; `chips`, option B) in
+`src/tools/banner/assets/option_{a_box,b_chip}.png`, shown in the banner README. The page's toolbar can flip
+the layout live. Details:
 `src/tools/banner/README.md`.
 
 ## Changelog convention

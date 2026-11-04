@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The banner shows both install commands (`pip install callai-cli`, `uv tool install callai-cli`), in one box
+  (option A, default) or as stacked chips (option B). See
+  [`src/tools/banner/CHANGELOG.md`](src/tools/banner/CHANGELOG.md).
+
 ## [0.9.0] - 2026-11-04
 
 ### Changed

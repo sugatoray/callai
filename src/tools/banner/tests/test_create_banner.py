@@ -298,6 +298,11 @@ chunk = struct.pack(">I", len(ihdr)) + b"IHDR" + ihdr + struct.pack(">I", zlib.c
 open(out, "wb").write(b"\\x89PNG\\r\\n\\x1a\\n" + chunk)
 with open(out + ".argv", "w") as f:
     f.write("\\n".join(args))
+# keep a copy of the page that was screenshotted (it may be a temporary file)
+from urllib.parse import unquote, urlparse
+if args[-1].startswith("file:"):
+    page = unquote(urlparse(args[-1]).path)
+    open(out + ".html", "w").write(open(page).read())
 """
 
 
@@ -426,3 +431,95 @@ def test_real_chrome_renders_banner_at_2x(tmp_path):
     png = tmp_path / "banner.png"
     cb.export_png(chrome, OUTPUT, png)
     assert cb.png_size(png) == (2560, 1280)
+
+
+# ── Install commands: option A (box) and option B (chips) ───────────────────────
+
+EXAMPLES_DIR = BANNER_DIR / "assets"
+
+
+def markup(html):
+    """The banner's own markup (between its banner:html markers), without the editor's toolbar and script."""
+    return html[html.index("banner:html:start") : html.index("banner:html:end")]
+
+
+def test_install_default_is_one_box_with_both_commands(tmp_path):
+    html = build(tmp_path)
+    block = html[html.index('<div class="install install-box">') :]
+    block = block[: block.index("</div>\n", block.index("uv tool install")) + 6]
+    assert block.count('<div class="line"><span class="dollar">$</span>') == 2
+    assert "<span data-edit>pip install demo-cli</span>" in block  # {package_name} filled in
+    assert "<span data-edit>uv tool install demo-cli</span>" in block
+    assert "install-chips" not in markup(html)
+
+
+def test_install_style_chips_stacks_separate_chips(tmp_path):
+    html = build(tmp_path, install_style="chips")
+    body = markup(html)
+    assert '<div class="install-chips">' in body and "install-box" not in body
+    assert body.count('<div class="install"><span class="dollar">$</span><span data-edit>') == 2
+
+
+def test_install_commands_override_and_limits(tmp_path):
+    html = build(tmp_path, install_commands=["pipx install {package_name}"])
+    assert "pipx install demo-cli" in html and "uv tool install" not in markup(html)
+    with pytest.raises(cb.BannerError, match="install_style must be one of box, chips"):
+        build(tmp_path, install_style="grid")
+    with pytest.raises(cb.BannerError, match="install_commands needs at least one"):
+        build(tmp_path, install_commands=[])
+    build(tmp_path, install_commands=["a", "b", "c"])  # box fits three
+    with pytest.raises(cb.BannerError, match="at most 3 install_commands"):
+        build(tmp_path, install_commands=["a", "b", "c", "d"])
+    with pytest.raises(cb.BannerError, match="at most 2 install_commands"):
+        build(tmp_path, install_style="chips", install_commands=["a", "b", "c"])
+
+
+def test_old_install_command_key_names_its_replacement(tmp_path):
+    text = CONFIG.read_text().replace("install_commands:\n", 'install_command: "pip install x"\ninstall_commands:\n')
+    with pytest.raises(cb.BannerError, match="install_command was replaced by install_commands"):
+        build(tmp_path, text)
+
+
+def test_main_install_style_flag(tmp_path):
+    code, out = run_main(tmp_path, "--install-style", "chips")
+    assert code == 0
+    assert '<div class="install-chips">' in markup(out.read_text())
+
+
+def test_main_examples_render_both_options(tmp_path):
+    exe = fake_chrome(tmp_path)
+    examples = tmp_path / "examples"
+    code, out = run_main(tmp_path, "--examples", str(examples), "--chrome", str(exe))
+    assert code == 0
+    box, chips = examples / "option_a_box.png", examples / "option_b_chip.png"
+    assert cb.png_size(box) == cb.png_size(chips) == (1280, 640)  # 1x
+    assert 'class="install install-box"' in (examples / "option_a_box.png.html").read_text()
+    assert 'class="install-chips"' in (examples / "option_b_chip.png.html").read_text()
+    assert 'class="install install-box"' in out.read_text()  # the main page keeps the configured style
+    assert not list(tmp_path.glob("**/callai-banner-option-*.html"))  # temporary pages are cleaned up
+
+
+def test_examples_and_check_conflict(tmp_path):
+    code, _ = run_main(tmp_path, "--examples", str(tmp_path), "--check")
+    assert code == 2
+
+
+def test_default_examples_dir_and_names():
+    assert cb.DEFAULT_EXAMPLES_DIR == EXAMPLES_DIR
+    assert cb.EXAMPLES == {"box": "option_a_box.png", "chips": "option_b_chip.png"}
+
+
+def test_committed_examples_exist_and_readme_shows_them():
+    readme = (BANNER_DIR / "README.md").read_text()
+    for name in cb.EXAMPLES.values():
+        assert cb.png_size(EXAMPLES_DIR / name) == (1280, 640)
+        assert f"](assets/{name})" in readme
+
+
+def test_editor_toolbar_has_an_install_switch(tmp_path):
+    html = build(tmp_path)
+    seg = html[html.index('<div class="seg" id="installSeg">') :]
+    seg = seg[: seg.index("</div>")]
+    assert 'data-install="box"' in seg and 'data-install="chips"' in seg
+    # the page's own limit for option B matches the builder's
+    assert f"const MAX_CHIPS = {cb.INSTALL_STYLES['chips']};" in html

@@ -40,6 +40,7 @@ DEFAULT_CONFIG = BANNER_DIR / "config.yaml"
 DEFAULT_TEMPLATE = BANNER_DIR / "assets" / "callai-banner-template.html"
 DEFAULT_OUTPUT = BANNER_DIR / "callai-banner.html"
 DEFAULT_PNG_DIR = REPO_ROOT / "docs" / "assets" / "images"
+DEFAULT_EXAMPLES_DIR = BANNER_DIR / "assets"
 
 #: The banner's size in CSS pixels; a PNG at scale N is N times this.
 BANNER_SIZE = (1280, 640)
@@ -88,7 +89,13 @@ AUTO = "auto"
 #: Values that ``"auto"`` reads from the repository.
 FACT_KEYS = ("package_name", "package_version", "python_requires", "license", "repo_url", "harnesses")
 #: Keys whose value is a list of strings ("auto" is also allowed for ``harnesses``).
-LIST_KEYS = ("harnesses", "fanout_harnesses", "fanout_durations")
+LIST_KEYS = ("harnesses", "fanout_harnesses", "fanout_durations", "install_commands")
+#: How the install commands are laid out, with the most commands each layout has room for.
+INSTALL_STYLES = {"box": 3, "chips": 2}
+#: The example PNG written for each install style by ``--examples`` (shown in README.md).
+EXAMPLES = {"box": "option_a_box.png", "chips": "option_b_chip.png"}
+#: Keys that were renamed, mapped to their replacement.
+RENAMED_KEYS = {"install_command": "install_commands"}
 #: Every key ``config.yaml`` must define, and the only keys it may define.
 CONFIG_KEYS = (
     *FACT_KEYS,
@@ -101,7 +108,8 @@ CONFIG_KEYS = (
     "wordmark_accent",
     "tagline",
     "subtitle",
-    "install_command",
+    "install_commands",
+    "install_style",
     "terminal_title",
     "fanout_harnesses",
     "fanout_durations",
@@ -122,7 +130,6 @@ TEXT_FIELDS = (
     "wordmark_accent",
     "tagline",
     "subtitle",
-    "install_command",
     "terminal_title",
     "harness_label",
     "repo_label",
@@ -337,6 +344,8 @@ def resolve(config: dict[str, Value], overrides: dict[str, Value], root: Path) -
     """
     for source in (config, overrides):
         for key in source:
+            if key in RENAMED_KEYS:
+                raise BannerError(f"{key} was replaced by {RENAMED_KEYS[key]} (a list); rename it in the config")
             if key not in CONFIG_KEYS:
                 raise BannerError(f"unknown config key {key!r}; known keys: {', '.join(CONFIG_KEYS)}")
     for key in CONFIG_KEYS:
@@ -372,6 +381,16 @@ def resolve(config: dict[str, Value], overrides: dict[str, Value], root: Path) -
 
     for key in TEXT_FIELDS:
         values[key] = interpolate(values[key])  # type: ignore[arg-type]
+    values["install_commands"] = [interpolate(c) for c in values["install_commands"]]  # type: ignore[union-attr]
+
+    style, commands = values["install_style"], values["install_commands"]
+    if style not in INSTALL_STYLES:
+        raise BannerError(f"install_style must be one of {', '.join(INSTALL_STYLES)}, got {style!r}")
+    if not commands:
+        raise BannerError("install_commands needs at least one command")
+    if len(commands) > INSTALL_STYLES[style]:
+        room = INSTALL_STYLES[style]
+        raise BannerError(f"install_style {style!r} has room for at most {room} install_commands, got {len(commands)}")
 
     harnesses = values["harnesses"]
     if not values["fanout_harnesses"]:
@@ -446,6 +465,25 @@ def _terminal_body(values: dict[str, Value]) -> str:
     return "\n".join(lines)
 
 
+def _install_block(values: dict[str, Value]) -> str:
+    """The install commands' HTML: option A (one box) or option B (a chip per command).
+
+    Args:
+        values: The resolved config values.
+
+    Returns:
+        HTML for the install area; each command is its own editable span.
+    """
+    pad = "          "
+    dollar = '<span class="dollar">$</span>'
+    commands = [f"<span data-edit>{html.escape(c, quote=False)}</span>" for c in values["install_commands"]]
+    if values["install_style"] == "box":
+        lines = "".join(f'\n{pad}  <div class="line">{dollar}{c}</div>' for c in commands)
+        return f'<div class="install install-box">{lines}\n{pad}</div>'
+    chips = "".join(f'\n{pad}  <div class="install">{dollar}{c}</div>' for c in commands)
+    return f'<div class="install-chips">{chips}\n{pad}</div>'
+
+
 def build_context(values: dict[str, Value]) -> dict[str, str]:
     """Turn resolved values into the template's placeholder HTML.
 
@@ -458,6 +496,7 @@ def build_context(values: dict[str, Value]) -> dict[str, str]:
     """
     context = {key: html.escape(values[key], quote=False) for key in TEXT_FIELDS}  # type: ignore[arg-type]
     context["terminal_body"] = _terminal_body(values)
+    context["install_block"] = _install_block(values)
     context["harness_pills"] = "\n".join(
         f'            <span class="pill">{html.escape(name)}</span>' for name in values["harnesses"]
     )
@@ -631,6 +670,33 @@ def export_png(
         raise BannerError(f"{png_path}: expected {want[0]}×{want[1]} pixels, got {got[0]}×{got[1]}")
 
 
+def write_examples(
+    chrome: str, config_path: Path, template_path: Path, root: Path, overrides: dict[str, Value], out_dir: Path
+) -> list[Path]:
+    """Render the banner once per install style to the example PNGs in :data:`EXAMPLES` (1x).
+
+    Args:
+        chrome: The Chrome/Chromium executable.
+        config_path: The config file.
+        template_path: The HTML template.
+        root: The repository root, for ``"auto"`` values.
+        overrides: Command-line overrides; ``install_style`` is replaced per example.
+        out_dir: Where the PNGs go.
+
+    Returns:
+        The PNGs written. A failed build or export raises ``BannerError`` (e.g. more commands than
+        option B has room for).
+    """
+    written = []
+    with tempfile.TemporaryDirectory(prefix="callai-banner-examples-") as tmp:
+        for style, name in EXAMPLES.items():
+            page = Path(tmp) / f"callai-banner-option-{style}.html"
+            page.write_text(build_banner(config_path, template_path, root, {**overrides, "install_style": style}))
+            export_png(chrome, page, out_dir / name, scale=1)
+            written.append(out_dir / name)
+    return written
+
+
 # ── Command line ────────────────────────────────────────────────────────────────
 
 
@@ -650,7 +716,7 @@ def _parse_set(item: str) -> tuple[str, Value]:
     if not sep:
         raise BannerError(f"--set expects KEY=VALUE, got {item!r}")
     key = key.strip()
-    if key in LIST_KEYS and value != AUTO:
+    if key in LIST_KEYS and (value != AUTO or key == "install_commands"):
         return key, [v.strip() for v in value.split(",") if v.strip()]
     return key, value
 
@@ -677,6 +743,11 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--set", action="append", default=[], metavar="KEY=VALUE", help="override any config key (repeatable)"
     )
+    parser.add_argument(
+        "--install-style",
+        choices=tuple(INSTALL_STYLES),
+        help="box (option A) or chips (option B); overrides the config",
+    )
     parser.add_argument("--check", action="store_true", help="don't write; exit 1 if the output is out of date")
     png = parser.add_argument_group("PNG export (headless Chrome/Chromium)")
     png.add_argument(
@@ -693,9 +764,18 @@ def main(argv: list[str] | None = None) -> int:
     png.add_argument("--background", choices=BACKGROUNDS, default="as-is", help="PNG background (default: %(default)s)")
     png.add_argument("--ink", choices=INKS, default="auto", help="text colour (default: %(default)s)")
     png.add_argument("--chrome", metavar="PATH", help="Chrome/Chromium executable (default: $CHROME, then PATH)")
+    png.add_argument(
+        "--examples",
+        type=Path,
+        nargs="?",
+        const=DEFAULT_EXAMPLES_DIR,
+        metavar="DIR",
+        help="also write 1x example PNGs of both install styles: option_a_box.png, option_b_chip.png "
+        "(DIR defaults to src/tools/banner/assets)",
+    )
     ns = parser.parse_args(argv)
-    if ns.check and ns.png:
-        print("create_banner: error: --check and --png can't be combined", file=sys.stderr)
+    if ns.check and (ns.png or ns.examples):
+        print("create_banner: error: --check can't be combined with --png or --examples", file=sys.stderr)
         return 2
     if ns.png is _PNG_DEFAULT:
         ns.png = default_png(ns.scale)
@@ -706,6 +786,8 @@ def main(argv: list[str] | None = None) -> int:
             value = getattr(ns, fact)
             if value is not None:
                 overrides[fact] = _parse_set(f"{fact}={value}")[1]
+        if ns.install_style:
+            overrides["install_style"] = ns.install_style
         page = build_banner(ns.config, ns.template, ns.repo_root, overrides)
     except BannerError as exc:
         print(f"create_banner: error: {exc}", file=sys.stderr)
@@ -729,6 +811,15 @@ def main(argv: list[str] | None = None) -> int:
             return 2
         width, height = png_size(ns.png)
         print(f"wrote {ns.png} ({width}×{height}, {ns.scale}x, background {ns.background})")
+    if ns.examples:
+        try:
+            for path in write_examples(
+                find_chrome(ns.chrome), ns.config, ns.template, ns.repo_root, overrides, ns.examples
+            ):
+                print(f"wrote {path} (example, 1x)")
+        except BannerError as exc:
+            print(f"create_banner: error: {exc}", file=sys.stderr)
+            return 2
     return 0
 
 

@@ -30,7 +30,12 @@ wordmark_plain: "call"
 wordmark_accent: "ai"
 tagline: "One command line for every coding‑agent harness."
 subtitle: "Run a prompt non-interactively through the harness you pick, and get one normalised result: text, JSON or a live event stream."
-install_command: "pip install {package_name}"
+# Install commands, shown with a `$` prompt. install_style: "box" (option A: one box, a line per
+# command; up to 3) or "chips" (option B: a separate chip per command; up to 2).
+install_commands:
+  - "pip install {package_name}"
+  - "uv tool install {package_name}"
+install_style: "box"
 
 # ── Terminal demo (harness names must be in `harnesses`) ──
 terminal_title: "~/project — zsh"

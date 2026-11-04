@@ -14,6 +14,7 @@ you can edit in the browser and export as PNG. `make maint.banner.png` also rend
 | `create_banner.py` | The builder: fills the template from the config and the repository. Standard library only. |
 | `callai-banner.html` | The generated page (committed). **Don't edit by hand**: run `make maint.banner` instead. |
 | `../../../docs/assets/images/banner_2x.png` | The 2x PNG of the page (committed), made by `make maint.banner.png`. |
+| `assets/option_a_box.png`, `assets/option_b_chip.png` | Examples of the two install-command layouts (committed, 1x), shown [below](#install-commands-option-a-or-b). Made by `make maint.banner.png` or `make maint.banner.examples`. |
 | `tests/` | Tests for the builder. They run with `make test`. |
 | `CHANGELOG.md` | Changes to this tool (the root `CHANGELOG.md` covers callai itself). |
 
@@ -25,17 +26,19 @@ Run these from the repository root.
 |---|---|
 | `make maint.banner` | Rebuild `callai-banner.html` from the template and `config.yaml`. |
 | `make maint.banner.check` | Write nothing; exit 1 if `callai-banner.html` is out of date. |
-| `make maint.banner.png` | Rebuild `callai-banner.html`, then render it to `docs/assets/images/banner_2x.png` at **2x** with headless Chrome. |
+| `make maint.banner.png` | Rebuild `callai-banner.html`, render it to `docs/assets/images/banner_2x.png` at **2x** with headless Chrome, and re-render the two [option examples](#install-commands-option-a-or-b). Run this whenever the banner changes. |
+| `make maint.banner.examples` | Rebuild `callai-banner.html` and re-render only the option examples. |
 
-All three take these variables:
+All four take these variables:
 
 | variable | default | meaning |
 |---|---|---|
 | `BANNER_PACKAGE_VERSION` | *(empty)* | Show this version instead of the one in `pyproject.toml` (`--package-version`). |
 | `BANNER_ARGS` | *(empty)* | Extra arguments for `create_banner.py` (see [Command line](#command-line)). |
 | `BANNER_PYTHON` | `uv run --no-project python` | The Python that runs the builder (needs 3.11+ for `tomllib`). |
+| `BANNER_INSTALL_STYLE` | *(empty: `install_style` in `config.yaml`)* | `box` (option A) or `chips` (option B), see [below](#install-commands-option-a-or-b). |
 
-`make maint.banner.png` also takes:
+`make maint.banner.png` and `make maint.banner.examples` also take:
 
 | variable | default | meaning |
 |---|---|---|
@@ -44,6 +47,10 @@ All three take these variables:
 | `BANNER_BACKGROUND` | `as-is` | `as-is`, `white`, `black` or `transparent`. |
 | `BANNER_INK` | `auto` | `auto` (dark text on white), `light` or `dark`. |
 | `BANNER_CHROME` | *(found automatically)* | The Chrome/Chromium executable (see [PNG export](#png-export)). |
+| `BANNER_EXAMPLES_DIR` | `src/tools/banner/assets` | Where the option examples go. |
+
+(`BANNER_PNG`, `BANNER_SCALE`, `BANNER_BACKGROUND` and `BANNER_INK` apply to `maint.banner.png` only; the
+examples are always 1x with the banner's own background.)
 
 ```bash
 make maint.banner
@@ -68,6 +75,43 @@ make maint.banner.png BANNER_SCALE=4
 ```bash
 make maint.banner.png BANNER_BACKGROUND=transparent BANNER_PNG=build/banner_2x_transparent.png
 ```
+
+```bash
+make maint.banner.png BANNER_INSTALL_STYLE=chips
+```
+
+## Install commands: option A or B
+
+The banner shows the install commands from `install_commands` in `config.yaml` (by default
+`pip install {package_name}` and `uv tool install {package_name}`). `install_style` picks the layout:
+
+| option | `install_style` | layout | room for | example |
+|---|---|---|---|---|
+| **A** (default) | `"box"` | one box, a line per command | 3 commands | `assets/option_a_box.png` |
+| **B** | `"chips"` | a separate chip per command, stacked | 2 commands | `assets/option_b_chip.png` |
+
+**Option A: `box` (default)**
+
+![Option A: the install commands in one box](assets/option_a_box.png)
+
+**Option B: `chips`**
+
+![Option B: a chip per install command](assets/option_b_chip.png)
+
+Ways to choose the layout, from most to least lasting:
+
+1. **In `config.yaml`**: set `install_style: "chips"` and run `make maint.banner.png`. Every build uses it.
+2. **For one build**: run `make maint.banner.png BANNER_INSTALL_STYLE=chips`, or
+   `create_banner.py --install-style chips`, or `--set install_style=chips`.
+3. **In the browser**: the **Install: Box / Chips** switch in the page's toolbar flips the layout live,
+   so you can compare and export either one without rebuilding. **Save HTML** keeps the layout you chose;
+   a reload goes back to the built one. **Chips** is disabled while there are more than 2 commands.
+
+The build stops with an error if there are more commands than the layout has room for, or none at all.
+
+The two example images are rendered from the current config and template, once per layout. They're
+refreshed every time the banner images are (`make maint.banner.png`), or on their own with
+`make maint.banner.examples`. Commit them along with `callai-banner.html` and `banner_2x.png`.
 
 ## How it works
 
@@ -114,7 +158,8 @@ The config is a strict subset of YAML that any YAML parser reads the same way:
 | `mark_glyph` | The text in the square mark (`>_`). |
 | `wordmark_plain`, `wordmark_accent` | The wordmark: plain part, then the gradient part (`call` + `ai`). |
 | `tagline`, `subtitle` | The headline and the line under it. |
-| `install_command` | The install chip (without the `$`). |
+| `install_commands` | The install commands, one per line or chip, without the `$` (a list; can use `{package_name}`). Replaces the old `install_command`, which is now an error. |
+| `install_style` | `"box"` (option A, default) or `"chips"` (option B); see [Install commands](#install-commands-option-a-or-b). |
 | `terminal_title` | The terminal window's title bar. |
 | `fanout_harnesses`, `fanout_durations`, `fanout_prompt` | The parallel-run demo: one duration per harness. |
 | `pipe_harness`, `pipe_prompt` | The `git diff \| callai ... -o json` demo. |
@@ -136,6 +181,8 @@ python src/tools/banner/create_banner.py [options]
   --repo-url TEXT          override repo_url
   --harnesses A,B,...      override harnesses
   --set KEY=VALUE          override any config key; list keys take comma-separated values (repeatable)
+  --install-style {box,chips}
+                           install-command layout: box (option A) or chips (option B)
   --check                  don't write; exit 1 if the output is out of date
 
 PNG export (headless Chrome/Chromium):
@@ -145,10 +192,12 @@ PNG export (headless Chrome/Chromium):
                            PNG background (default: as-is)
   --ink {auto,light,dark}  text colour (default: auto)
   --chrome PATH            Chrome/Chromium executable (default: $CHROME, then a search)
+  --examples [DIR]         also write the 1x option examples option_a_box.png and option_b_chip.png
+                           (DIR defaults to src/tools/banner/assets)
 ```
 
 Exit codes: 0 on success (or an up-to-date `--check`), 1 if `--check` finds the page stale, 2 on an error
-(including a failed PNG export). `--check` and `--png` can't be combined.
+(including a failed PNG export). `--check` can't be combined with `--png` or `--examples`.
 
 ## PNG export
 
@@ -191,6 +240,8 @@ library (`html-to-image`, loaded from a CDN).
   `callai-banner-transparent@4x.png`.
 - **Ink** sets the text colour. **Auto** switches to dark text on white; choose **Dark** for a
   transparent PNG that will sit on a light background.
+- **Install** switches the install commands between **Box** (option A) and **Chips** (option B), keeping
+  any edits; see [Install commands](#install-commands-option-a-or-b).
 
 Edits made in the browser stay in the browser. To change the banner for good, edit `config.yaml` (or the
 template) and run `make maint.banner`.

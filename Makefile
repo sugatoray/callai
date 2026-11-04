@@ -8,7 +8,8 @@
 #   make install.<tool>        install one (tool = the callai --name value)
 #   make docs.html             bundle docs/callai/ into one HTML page (build/docs.html)
 #   make maint.banner          rebuild src/tools/banner/callai-banner.html from its template + config.yaml
-#   make maint.banner.png      ...and render it to docs/assets/images/banner_2x.png (headless Chrome)
+#   make maint.banner.png      ...and render it to docs/assets/images/banner_2x.png + the option A/B examples
+#   make maint.banner.examples render only the option A/B examples (src/tools/banner/assets/option_*.png)
 #   make test                  run the tests on the pinned development Python (.python-version)
 #   make test.matrix           run the tests on every supported Python (PYTHON_VERSIONS)
 #   make pkg.build             build the sdist + wheel into dist/ (uv build)
@@ -36,7 +37,7 @@ GROK_VERSION := 1.0.70
 
 HARNESSES := claude-code codex opencode pi hermes grok
 
-.PHONY: help test test.matrix docs.html maint.banner maint.banner.check maint.banner.png pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
+.PHONY: help test test.matrix docs.html maint.banner maint.banner.check maint.banner.png maint.banner.examples pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
 
 help: ## Show this help
 	@echo "Targets:"
@@ -111,12 +112,15 @@ docs.html: ## Bundle docs/callai/ into one HTML page with tabs, page list, outli
 # Override on the command line, e.g.
 #   make maint.banner BANNER_PACKAGE_VERSION=0.9.0
 #   make maint.banner BANNER_ARGS='--set tagline="Hello" --harnesses codex,pi'
+#   make maint.banner.png BANNER_INSTALL_STYLE=chips          (install commands as option B: one chip each)
 #   make maint.banner.png BANNER_SCALE=4                      (-> docs/assets/images/banner_4x.png)
 #   make maint.banner.png BANNER_BACKGROUND=transparent BANNER_PNG=build/banner_2x_transparent.png
 BANNER_PYTHON ?= uv run --no-project python
 BANNER_PACKAGE_VERSION ?=
 BANNER_ARGS ?=
-BANNER_CMD = $(BANNER_PYTHON) src/tools/banner/create_banner.py $(if $(BANNER_PACKAGE_VERSION),--package-version $(BANNER_PACKAGE_VERSION)) $(BANNER_ARGS)
+# box (option A, one box) or chips (option B, a chip per command); empty = install_style in config.yaml
+BANNER_INSTALL_STYLE ?=
+BANNER_CMD = $(BANNER_PYTHON) src/tools/banner/create_banner.py $(if $(BANNER_PACKAGE_VERSION),--package-version $(BANNER_PACKAGE_VERSION)) $(if $(BANNER_INSTALL_STYLE),--install-style $(BANNER_INSTALL_STYLE)) $(BANNER_ARGS)
 
 maint.banner: ## Rebuild src/tools/banner/callai-banner.html from the template and config.yaml (BANNER_PACKAGE_VERSION=, BANNER_ARGS=)
 	$(BANNER_CMD)
@@ -131,9 +135,15 @@ BANNER_SCALE ?= 2
 BANNER_BACKGROUND ?= as-is
 BANNER_INK ?= auto
 BANNER_CHROME ?=
+# The README's example images of both install styles (option_a_box.png, option_b_chip.png), 1x.
+BANNER_EXAMPLES_DIR ?= src/tools/banner/assets
+BANNER_CHROME_ARG = $(if $(BANNER_CHROME),--chrome "$(BANNER_CHROME)")
 
-maint.banner.png: ## Rebuild the banner and render it to BANNER_PNG (default docs/assets/images/banner_2x.png)
-	$(BANNER_CMD) --png $(BANNER_PNG) --scale $(BANNER_SCALE) --background $(BANNER_BACKGROUND) --ink $(BANNER_INK) $(if $(BANNER_CHROME),--chrome "$(BANNER_CHROME)")
+maint.banner.png: ## Rebuild the banner, render BANNER_PNG (default docs/assets/images/banner_2x.png) and the option A/B examples
+	$(BANNER_CMD) --png $(BANNER_PNG) --scale $(BANNER_SCALE) --background $(BANNER_BACKGROUND) --ink $(BANNER_INK) --examples $(BANNER_EXAMPLES_DIR) $(BANNER_CHROME_ARG)
+
+maint.banner.examples: ## Rebuild the banner and render only the option A/B example PNGs (BANNER_EXAMPLES_DIR)
+	$(BANNER_CMD) --examples $(BANNER_EXAMPLES_DIR) $(BANNER_CHROME_ARG)
 
 install.harnesses: $(addprefix install.,$(HARNESSES)) ## Install every harness CLI callai supports
 	@echo "All harnesses installed: $(HARNESSES)"

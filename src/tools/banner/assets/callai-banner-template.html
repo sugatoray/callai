@@ -165,10 +165,15 @@
 
   #banner .install {
     margin-top: 28px; align-self: flex-start; display: inline-flex; align-items: center; gap: 12px;
-    font: 500 19px/1 "JetBrains Mono", monospace; color: var(--term-fg);
+    font: 500 19px/1 "JetBrains Mono", monospace; color: var(--term-fg); font-variant-ligatures: none;
     background: var(--term-bg); border: 1px solid var(--term-line); border-radius: 12px; padding: 14px 18px;
   }
   #banner .install .dollar { color: #5cc6cf; }
+  /* Option A: one box, a line per command. Option B: a chip per command, stacked. */
+  #banner .install-box { flex-direction: column; align-items: flex-start; gap: 10px; }
+  #banner .install-box .line { display: flex; align-items: center; gap: 12px; white-space: nowrap; }
+  #banner .install-chips { margin-top: 28px; align-self: flex-start; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; }
+  #banner .install-chips .install { margin-top: 0; }
 
   /* Terminal */
   #banner .terminal {
@@ -257,6 +262,14 @@
   </div>
 
   <div class="group">
+    <label>Install</label>
+    <div class="seg" id="installSeg">
+      <button data-install="box" aria-pressed="false" title="Option A: one box, a line per command">Box</button>
+      <button data-install="chips" aria-pressed="false" title="Option B: a chip per command">Chips</button>
+    </div>
+  </div>
+
+  <div class="group">
     <label>Scale</label>
     <div class="seg" id="scaleSeg">
       <button data-scale="1" aria-pressed="false">1x</button>
@@ -294,7 +307,7 @@
           <p class="tagline" data-edit>{{ tagline }}</p>
           <p class="sub" data-edit>{{ subtitle }}</p>
 
-          <div class="install"><span class="dollar">$</span><span data-edit>{{ install_command }}</span></div>
+          {{ install_block }}
         </div>
 
         <div class="terminal">
@@ -363,6 +376,43 @@
   wireSeg('bgSeg', 'bg', 'bg');
   wireSeg('inkSeg', 'ink', 'ink');
   wireSeg('scaleSeg', 'scale', 'scale', Number);
+
+  /* ── Install commands: option A (box) ⇄ option B (chips), live ── */
+  const MAX_CHIPS = 2;  // keep in step with INSTALL_STYLES in create_banner.py
+  const installSeg = document.getElementById('installSeg');
+  const installArea = () => banner.querySelector('.install-box, .install-chips');
+  const installStyle = () => (installArea().classList.contains('install-box') ? 'box' : 'chips');
+  const syncInstallSeg = () => {
+    const style = installStyle(), count = installArea().querySelectorAll('[data-edit]').length;
+    installSeg.querySelectorAll('button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.install === style)));
+    const chips = installSeg.querySelector('[data-install="chips"]');
+    chips.disabled = style !== 'chips' && count > MAX_CHIPS;
+    chips.title = chips.disabled ? `Option B has room for ${MAX_CHIPS} commands` : 'Option B: a chip per command';
+  };
+  const setInstall = (style) => {
+    const area = installArea();
+    if (style === installStyle()) return;
+    const box = style === 'box';
+    const wrap = document.createElement('div');
+    wrap.className = box ? 'install install-box' : 'install-chips';
+    // Move the command spans themselves, so text, edits and edit mode carry over.
+    area.querySelectorAll('[data-edit]').forEach((cmd) => {
+      const row = document.createElement('div');
+      row.className = box ? 'line' : 'install';
+      row.innerHTML = '<span class="dollar">$</span>';
+      row.append(cmd);
+      wrap.append(row);
+    });
+    area.replaceWith(wrap);
+    syncInstallSeg();
+  };
+  installSeg.addEventListener('click', (e) => {
+    const b = e.target.closest('button');
+    if (b && !b.disabled) setInstall(b.dataset.install);
+  });
+  const installParam = new URLSearchParams(location.search).get('install');  // export mode: ?export&install=chips
+  if (bare && ['box', 'chips'].includes(installParam)) setInstall(installParam);
+  syncInstallSeg();
   if (bare) {
     const q = new URLSearchParams(location.search);
     if (['as-is', 'white', 'black', 'transparent'].includes(q.get('bg'))) state.bg = q.get('bg');
