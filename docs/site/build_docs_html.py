@@ -5,6 +5,8 @@ Usage: python3 docs/site/build_docs_html.py docs/callai --out build/docs.html [-
 Tabs follow the landing page's `### Section` groups and the pages linked under each. Every page's
 Markdown and every SVG in images/ are embedded as JSON; the page renders them in the browser with
 marked and highlight.js, loaded from cdnjs. Links to files outside the docs point at GitHub on --ref.
+The landing page opens with the project banner (--banner, default docs/assets/images/banner_2x.png, made
+by `make maint.banner.png`), embedded like the SVGs; --no-banner leaves it out.
 """
 
 import argparse
@@ -19,6 +21,15 @@ HERE = Path(__file__).resolve().parent
 REPO = "https://github.com/sugatoray/callai"
 DOCS_IN_REPO = "docs/callai/"
 TAB_LABELS = {"Help": "FAQ", "How-to guides": "Guides"}
+BANNER = HERE.parents[1] / "docs" / "assets" / "images" / "banner_2x.png"
+BANNER_ALT = "callai: one command line for every coding-agent harness"
+MIME = {
+    ".png": "image/png",
+    ".svg": "image/svg+xml",
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".webp": "image/webp",
+}
 
 
 def page_id(rel: str) -> str:
@@ -83,21 +94,53 @@ def version() -> str:
     return tomllib.loads(pyproject.read_text(encoding="utf-8"))["project"]["version"]
 
 
-def build(docs: Path, ref: str) -> tuple[str, int]:
+def data_uri(path: Path) -> str:
+    """Encode an image file as a data: URI.
+
+    Args:
+        path: the image file.
+
+    Returns:
+        The URI, with the MIME type taken from the file's extension.
+    """
+    mime = MIME.get(path.suffix.lower(), "application/octet-stream")
+    return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode()
+
+
+def add_banner(pages: list[dict], images: dict[str, str], banner: Path) -> None:
+    """Put the banner image at the top of the landing page and embed it.
+
+    Args:
+        pages: the collected pages; the one with id "home" gets the banner.
+        images: the embedded images, keyed by path relative to the docs folder.
+        banner: the banner image file.
+
+    Raises:
+        SystemExit: the banner file doesn't exist.
+    """
+    if not banner.is_file():
+        raise SystemExit(f"banner image not found: {banner} (run `make maint.banner.png`, or pass --no-banner)")
+    key = f"images/{banner.name}"
+    images[key] = data_uri(banner)
+    home = next(p for p in pages if p["id"] == "home")
+    home["md"] = f"![{BANNER_ALT}]({key})\n\n" + home["md"]
+
+
+def build(docs: Path, ref: str, banner: Path | None = BANNER) -> tuple[str, int]:
     """Fill the template with the docs' pages, images and version.
 
     Args:
         docs: the docs folder.
         ref: the git branch or tag that links to files outside the docs point at.
+        banner: the image shown at the top of the landing page, or None for none.
 
     Returns:
         (the page's HTML, the number of pages bundled).
     """
     tabs, pages = collect(docs)
-    images = {
-        f"images/{p.name}": "data:image/svg+xml;base64," + base64.b64encode(p.read_bytes()).decode()
-        for p in sorted((docs / "images").glob("*.svg"))
-    }
+    images = {f"images/{p.name}": data_uri(p) for p in sorted((docs / "images").glob("*.svg"))}
+    if banner is not None:
+        add_banner(pages, images, banner)
     data = {
         "tabs": tabs,
         "pages": pages,
@@ -121,8 +164,11 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("docs", type=Path, help="the docs folder (holds README.md)")
     parser.add_argument("--out", type=Path, required=True, help="the HTML file to write")
     parser.add_argument("--ref", default="main", help="git branch or tag for links to GitHub (default: main)")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--banner", type=Path, default=BANNER, help="image at the top of the landing page")
+    group.add_argument("--no-banner", dest="banner", action="store_const", const=None, help="no banner")
     args = parser.parse_args(argv)
-    html, count = build(args.docs, args.ref)
+    html, count = build(args.docs, args.ref, args.banner)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(html, encoding="utf-8")
     print(f"wrote {args.out} ({count} pages, {len(html) // 1024} KB)", file=sys.stderr)

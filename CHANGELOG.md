@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `make docs.html` opens the landing page with the project banner (`docs/assets/images/banner_2x.png`,
+  embedded, so the page stays self-contained at about 1 MB). `build_docs_html.py --banner PATH` picks another
+  image, and `--no-banner` leaves it out.
 - A maintainer tool that builds the callai-cli banner (`make maint.banner`); see
   [`src/tools/banner/CHANGELOG.md`](src/tools/banner/CHANGELOG.md). It is not packaged.
 - Tested on Python 3.11, 3.12, 3.13 and 3.14. `make test.matrix` runs the suite once per version, each in an
