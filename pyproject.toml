@@ -48,6 +48,7 @@ classifiers = [
     "Topic :: Utilities",
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Typing :: Typed",
 
     ## If an internal or private package, add the following classifier:
     # "Private :: Do Not Upload",
@@ -71,6 +72,9 @@ callai = "callai.cli:main"
 where = ["src"]
 include = ["callai*"]  # exclude the top-level src/tests/ package from the built wheel
 namespaces = false
+
+[tool.setuptools.package-data]
+callai = ["py.typed"]  # PEP 561 marker, matches the "Typing :: Typed" classifier
 
 [tool.pytest.ini_options]
 testpaths = ["src/tests"]
