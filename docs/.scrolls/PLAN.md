@@ -51,6 +51,8 @@ Design reference: `docs/DESIGN.md` (section numbers below point there).
 
 - [x] CA-25: supported Pythons 3.11–3.14. `.python-version` pins 3.11 for development (`make test`); `make test.matrix` (`PYTHON_VERSIONS`) runs every version via `uv run --isolated --python`; `.github/workflows/tests.yml` runs the same per version plus lint. `requires-python` stays `>=3.11` (no cap: it breaks resolution for dependents); classifiers list the tested versions. Add a version: Makefile, workflow matrix and classifiers together.
 
+- [x] CA-26: packaging metadata and opt-in CI (PR #35, draft until merged). Single-sourced version (`pyproject.toml` → installed metadata), valid trove classifiers + `py.typed`, `.editorconfig`, uv `exclude-newer` cooldown, tests run on master/manual/`ci::run-tests` label only. Open: create the `ci::run-tests` label; confirm both workflows on GitHub.
+
 ## Later
 - [ ] CA-16: TypeScript port, module by module, passing the full `conformance/` suite (vitest); publish to npm. Maintained alongside Python.
 - [ ] CA-17: (if it makes sense) Rust port passing `conformance/`.

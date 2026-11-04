@@ -13,6 +13,8 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - 531 tests (+12 live, skipped by default), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~42 s (fan-out timing tests sleep).
 
 ## What just happened
+- CA-26 packaging (PR https://github.com/sugatoray/callai/pull/35, branch `feat/update_packaging`, draft): more PyPI classifiers (+ `py.typed` shipped via `[tool.setuptools.package-data]`), `.editorconfig`, `[tool.uv] exclude-newer = "5 days"` (so `uv.lock` carries an `[options]` block), and `callai.__version__` now read from the installed `callai-cli` metadata (fallback `0.0.0+unknown`). `docs/site/build_docs_html.py` reads the version from `pyproject.toml`.
+- CI is opt-in on PRs: `tests.yml` runs on master pushes, manual dispatch and `workflow_call`; `run-tests-on-label.yml` calls it on PRs carrying the `ci::run-tests` label. **The label must exist in the GitHub repo** (Issues → Labels) and neither workflow has run on GitHub yet.
 - Ruff (`pyproject.toml`) now excludes `.agents` and `.claude`, because the installed skills' Python files made `ruff check .` fail in CI. `ruff check` and `ruff format --check` pass locally; the CI run on PR #30 has not been checked yet.
 - Installed agent skills from `sugatoray/aiskills` with `npx skills add` for Codex and Claude Code: scrolls-setup/-update/-help/-hide/-unhide, create-issues-update-pr, create-lib-docs (`create-lob-docs` was a typo for `create-lib-docs`). Files are in `.agents/skills/` (Claude Code symlinks via `.claude/skills/`), pinned in `skills-lock.json`. Pushed on branch `claude/blissful-bell-tqq4l2`, PR https://github.com/sugatoray/callai/pull/30.
 - CA-25: Python 3.11–3.14 support made explicit (pin, `make test.matrix`, CI workflow, classifiers). Fixed a test that failed on 3.13 (argparse help layout).
@@ -27,5 +29,6 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - Live tests verified only for claude-code (no model access for the others here).
 - Windows still blocks on an idle stdin pipe.
 - Fan-out: shared working directory; `-v` stderr not prefixed in parallel.
+- After a fresh clone run `uv sync --extra test --extra dev` (the version now comes from installed metadata; an uninstalled source tree reports `0.0.0+unknown`).
 - Next: CA-16 (TypeScript port) if wanted, or tag v0.1.0…v0.8.0 (or just v0.8.0), since the import is merged.
 - Gemma via Hugging Face: needs `router.huggingface.co` allowed and an HF_TOKEN. Untested.
