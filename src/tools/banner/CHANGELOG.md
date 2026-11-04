@@ -10,13 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- PNG export from the command line: `--png [PATH]` (default `docs/assets/images/banner.png`), `--scale`
+- PNG export from the command line: `--png [PATH]` (default `docs/assets/images/banner_<scale>x.png`, so `banner_2x.png`), `--scale`
   (default **2**), `--background`, `--ink` and `--chrome`, and `make maint.banner.png` (`BANNER_PNG`,
   `BANNER_SCALE`, `BANNER_BACKGROUND`, `BANNER_INK`, `BANNER_CHROME`).
   - Headless Chrome screenshots the page's new export mode (`?export&bg=…&ink=…`: only the banner, unscaled).
   - The builder prefers `chrome-headless-shell`, uses a throwaway profile, stops after 90 s, and checks the
     PNG's size.
-  - The 2x banner is committed at `docs/assets/images/banner.png`.
+  - The 2x banner is committed at `docs/assets/images/banner_2x.png`.
 - `README.md` covers the files, the `make` commands and their variables, `config.yaml`, the command-line
   options, using the page, and running the tests.
 - `create_banner.py` builds `callai-banner.html` from `assets/callai-banner-template.html` and `config.yaml`.

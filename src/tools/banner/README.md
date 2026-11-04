@@ -2,7 +2,7 @@
 
 A maintainer tool that builds the callai-cli banner: a single, self-contained HTML page (1280 × 640) that
 you can edit in the browser and export as PNG. `make maint.banner.png` also renders it to
-`docs/assets/images/banner.png` at 2x (2560 × 1280). It is not part of the `callai` package; `MANIFEST.in` prunes
+`docs/assets/images/banner_2x.png` at 2x (2560 × 1280). It is not part of the `callai` package; `MANIFEST.in` prunes
 `src/tools/`, so nothing here ships in the sdist or wheel.
 
 ## Files
@@ -13,7 +13,7 @@ you can edit in the browser and export as PNG. `make maint.banner.png` also rend
 | `config.yaml` | Every value that goes into the banner. Edit this to change text, badges or the terminal demo. |
 | `create_banner.py` | The builder: fills the template from the config and the repository. Standard library only. |
 | `callai-banner.html` | The generated page (committed). **Don't edit by hand**: run `make maint.banner` instead. |
-| `../../../docs/assets/images/banner.png` | The 2x PNG of the page (committed), made by `make maint.banner.png`. |
+| `../../../docs/assets/images/banner_2x.png` | The 2x PNG of the page (committed), made by `make maint.banner.png`. |
 | `tests/` | Tests for the builder. They run with `make test`. |
 | `CHANGELOG.md` | Changes to this tool (the root `CHANGELOG.md` covers callai itself). |
 
@@ -25,7 +25,7 @@ Run these from the repository root.
 |---|---|
 | `make maint.banner` | Rebuild `callai-banner.html` from the template and `config.yaml`. |
 | `make maint.banner.check` | Write nothing; exit 1 if `callai-banner.html` is out of date. |
-| `make maint.banner.png` | Rebuild `callai-banner.html`, then render it to `docs/assets/images/banner.png` at **2x** with headless Chrome. |
+| `make maint.banner.png` | Rebuild `callai-banner.html`, then render it to `docs/assets/images/banner_2x.png` at **2x** with headless Chrome. |
 
 All three take these variables:
 
@@ -39,7 +39,7 @@ All three take these variables:
 
 | variable | default | meaning |
 |---|---|---|
-| `BANNER_PNG` | `docs/assets/images/banner.png` | Where to write the PNG. |
+| `BANNER_PNG` | `docs/assets/images/banner_$(BANNER_SCALE)x.png` | Where to write the PNG. The default name carries the scale: `banner_1x.png`, `banner_2x.png`, `banner_4x.png`. |
 | `BANNER_SCALE` | `2` | `1`, `2` or `4`: the PNG is 1280 × 640 times this. |
 | `BANNER_BACKGROUND` | `as-is` | `as-is`, `white`, `black` or `transparent`. |
 | `BANNER_INK` | `auto` | `auto` (dark text on white), `light` or `dark`. |
@@ -62,7 +62,11 @@ make maint.banner.png
 ```
 
 ```bash
-make maint.banner.png BANNER_SCALE=4 BANNER_BACKGROUND=transparent BANNER_PNG=build/banner@4x.png
+make maint.banner.png BANNER_SCALE=4
+```
+
+```bash
+make maint.banner.png BANNER_BACKGROUND=transparent BANNER_PNG=build/banner_2x_transparent.png
 ```
 
 ## How it works
@@ -135,7 +139,7 @@ python src/tools/banner/create_banner.py [options]
   --check                  don't write; exit 1 if the output is out of date
 
 PNG export (headless Chrome/Chromium):
-  --png [PATH]             also write a PNG (PATH defaults to docs/assets/images/banner.png)
+  --png [PATH]             also write a PNG (PATH defaults to docs/assets/images/banner_<scale>x.png)
   --scale {1,2,4}          PNG scale (default: 2)
   --background {as-is,white,black,transparent}
                            PNG background (default: as-is)
@@ -183,7 +187,7 @@ library (`html-to-image`, loaded from a CDN).
 - **Reset** throws away saved edits.
 - **Export PNG** uses the chosen **Background** (as is, white, black or transparent) and **Scale**
   (1x = 1280 × 640, **2x by default**, 4x). The browser saves it to your downloads folder; use
-  `make maint.banner.png` to write `docs/assets/images/banner.png`. **Export all 12** downloads every background at every scale, named like
+  `make maint.banner.png` to write `docs/assets/images/banner_2x.png`. **Export all 12** downloads every background at every scale, named like
   `callai-banner-transparent@4x.png`.
 - **Ink** sets the text colour. **Auto** switches to dark text on white; choose **Dark** for a
   transparent PNG that will sit on a light background.

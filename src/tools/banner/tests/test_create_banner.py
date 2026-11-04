@@ -386,8 +386,21 @@ def test_main_png_and_check_conflict(tmp_path):
     assert code == 2
 
 
-def test_default_png_path():
-    assert cb.DEFAULT_PNG == REPO_ROOT / "docs" / "assets" / "images" / "banner.png"
+def test_default_png_path_names_the_scale():
+    images = REPO_ROOT / "docs" / "assets" / "images"
+    assert images / "banner_2x.png" == cb.DEFAULT_PNG
+    assert cb.default_png(4) == images / "banner_4x.png"
+
+
+def test_main_png_without_path_uses_scale_in_default_name(tmp_path, monkeypatch):
+    monkeypatch.setattr(cb, "DEFAULT_PNG_DIR", tmp_path / "images")
+    exe = fake_chrome(tmp_path)
+    code, _ = run_main(tmp_path, "--chrome", str(exe), "--scale", "4", "--png")
+    assert code == 0
+    assert cb.png_size(tmp_path / "images" / "banner_4x.png") == (5120, 2560)
+    code, _ = run_main(tmp_path, "--chrome", str(exe), "--png")
+    assert code == 0
+    assert cb.png_size(tmp_path / "images" / "banner_2x.png") == (2560, 1280)
 
 
 def test_find_chrome_searches_names_then_globs(tmp_path, monkeypatch):

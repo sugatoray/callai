@@ -9,7 +9,7 @@ Values set to ``"auto"`` in the config are read from the repository: the package
 Python requirement, license and source URL from ``pyproject.toml``, and the harness names from
 ``HARNESS_NAMES`` in ``src/callai/adapters/__init__.py``. Command-line flags override the config.
 ``--png`` also screenshots the page with headless Chrome/Chromium (default: 2x, as
-``docs/assets/images/banner.png``).
+``docs/assets/images/banner_2x.png``; the file name follows ``--scale``).
 
 Maintainer tool only: it lives outside the ``callai`` package and is excluded from the sdist and
 wheel. Standard library only, like callai itself, so the config is read with a small parser for a
@@ -39,12 +39,28 @@ REPO_ROOT = BANNER_DIR.parents[2]
 DEFAULT_CONFIG = BANNER_DIR / "config.yaml"
 DEFAULT_TEMPLATE = BANNER_DIR / "assets" / "callai-banner-template.html"
 DEFAULT_OUTPUT = BANNER_DIR / "callai-banner.html"
-DEFAULT_PNG = REPO_ROOT / "docs" / "assets" / "images" / "banner.png"
+DEFAULT_PNG_DIR = REPO_ROOT / "docs" / "assets" / "images"
 
 #: The banner's size in CSS pixels; a PNG at scale N is N times this.
 BANNER_SIZE = (1280, 640)
 SCALES = (1, 2, 4)
 DEFAULT_SCALE = 2
+_PNG_DEFAULT = object()  # --png given without a PATH (not a str: argparse would run type=Path on it)
+
+
+def default_png(scale: int) -> Path:
+    """The default PNG path for a scale: ``docs/assets/images/banner_<scale>x.png``.
+
+    Args:
+        scale: The PNG scale (1, 2 or 4).
+
+    Returns:
+        The path, with the scale in the file name.
+    """
+    return DEFAULT_PNG_DIR / f"banner_{scale}x.png"
+
+
+DEFAULT_PNG = default_png(DEFAULT_SCALE)
 BACKGROUNDS = ("as-is", "white", "black", "transparent")
 INKS = ("auto", "light", "dark")
 #: Where to look for a browser when --chrome and $CHROME are unset, in order. Plain names are looked up on
@@ -667,9 +683,9 @@ def main(argv: list[str] | None = None) -> int:
         "--png",
         type=Path,
         nargs="?",
-        const=DEFAULT_PNG,
+        const=_PNG_DEFAULT,
         metavar="PATH",
-        help=f"also write a PNG of the banner (PATH defaults to {DEFAULT_PNG.relative_to(REPO_ROOT)})",
+        help="also write a PNG of the banner (PATH defaults to docs/assets/images/banner_<scale>x.png)",
     )
     png.add_argument(
         "--scale", type=int, choices=SCALES, default=DEFAULT_SCALE, help="PNG scale (default: %(default)s)"
@@ -681,6 +697,8 @@ def main(argv: list[str] | None = None) -> int:
     if ns.check and ns.png:
         print("create_banner: error: --check and --png can't be combined", file=sys.stderr)
         return 2
+    if ns.png is _PNG_DEFAULT:
+        ns.png = default_png(ns.scale)
 
     try:
         overrides = dict(_parse_set(item) for item in ns.set)
