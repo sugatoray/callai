@@ -52,6 +52,7 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - Only valid trove classifiers (https://pypi.org/classifiers/) — PyPI rejects an upload with an unknown one (`AI Engineers`, `Agentic Harness`, `Software Development :: CLI` are not real). `Typing :: Typed` needs a `py.typed` file listed in `package-data`.
 - Changing `[tool.uv]` (e.g. `exclude-newer`) makes `uv sync --locked` fail until `uv lock` is re-run and committed.
 - A reusable workflow evaluates `concurrency` itself, with the *caller's* `github.workflow`/`github.ref`: give the caller a different group than the called workflow, or the callee cancels itself.
+- `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards.
 
 ## Ditches — bad patterns or decisions to avoid
 Bad patterns or decisions to never take, and why they were rejected.
