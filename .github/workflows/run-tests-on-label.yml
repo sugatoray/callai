@@ -1,5 +1,5 @@
 # Opt-in CI for pull requests. The `tests` workflow no longer runs on every PR commit; add the
-# `run-tests` label to a PR to run it, and it re-runs on each new push for as long as the label stays.
+# `ci::run-tests` label to a PR to run it, and it re-runs on each new push for as long as the label stays.
 # Remove the label to stop. (A manual run of `tests` on any branch is still available.)
 name: run-tests-on-label
 
@@ -18,5 +18,5 @@ concurrency:
 jobs:
   tests:
     # `labeled` fires for every label; the check below also covers synchronize/reopened.
-    if: contains(github.event.pull_request.labels.*.name, 'run-tests')
+    if: contains(github.event.pull_request.labels.*.name, 'ci::run-tests')
     uses: ./.github/workflows/tests.yml

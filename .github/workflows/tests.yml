@@ -3,7 +3,7 @@
 #
 # Triggers: every push to master, a manual run (Actions tab -> tests -> Run workflow, pick any branch),
 # and workflow_call from run-tests-on-label.yml, which runs it on a pull request carrying the
-# `run-tests` label. Branch pushes and PR commits do not start it on their own.
+# `ci::run-tests` label. Branch pushes and PR commits do not start it on their own.
 name: tests
 
 on:
