@@ -7,19 +7,50 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- The banner shows both install commands (`pip install callai-cli`, `uv tool install callai-cli`), in one box
+  (option A, default) or as stacked chips (option B). See
+  [`src/tools/banner/CHANGELOG.md`](src/tools/banner/CHANGELOG.md).
+
+## [0.9.0] - 2026-11-04
+
 ### Changed
 
+- `callai.__version__` comes from the installed `callai-cli` metadata, so `pyproject.toml` is the only place
+  the version is written. A source tree that isn't installed reports `0.0.0+unknown`; run
+  `uv sync --extra test --extra dev` after cloning.
+- Tests run on GitHub only on pushes to `master`, on manual dispatch, and on pull requests labelled
+  `ci::run-tests` (`run-tests-on-label.yml` calls `tests.yml`).
+- uv ignores packages released in the last 5 days (`[tool.uv] exclude-newer = "5 days"`).
 - callai now lives in its own repository, [sugatoray/callai](https://github.com/sugatoray/callai), imported
   from `sugatoray/devx` (`src/experiments/expt_callai`) at 0.8.0. Paths and links in the docs, the HTML docs
   builder and the project notes point at this repository; `pyproject.toml` gains `[project.urls]`.
 
 ### Added
 
+- `make docs.html` header: a GitHub button (links to https://github.com/sugatoray/callai, no branch) next to the
+  light/dark toggle, and a magnifying-glass icon in the search box. On phones the icon replaces the
+  "Search the docs" placeholder text, which no longer fits.
+- `make docs.html` opens the landing page with the project banner: its HTML and CSS, without the editing
+  features, copied from `src/tools/banner/callai-banner.html` and scaled to the column width (live text, not an
+  image; the page stays at about 190 KB). `build_docs_html.py --banner PATH` picks another banner page, and
+  `--no-banner` leaves it out.
+- Packaging through uv: `make pkg.build` (sdist + wheel in `dist/`), `make pkg.publish` (needs
+  `UV_PUBLISH_TOKEN`; `PUBLISH_URL` for TestPyPI), and `make pkg.install.e`, `pkg.install.local` and
+  `pkg.install.pypi`. `MANIFEST.in` lists what the sdist ships. The wheel ships `py.typed`, and
+  `pyproject.toml` has more PyPI classifiers, including `Typing :: Typed`. `.editorconfig` added.
+- The docs are published on GitHub Pages: `.github/workflows/docs.yml` builds `make docs.html` and deploys it
+  on pushes to `master` that touch the docs, or by hand on any branch.
+- Agent skills for contributors (scrolls memory, `create-lib-docs`, `create-issues-update-pr`) from
+  [sugatoray/aiskills](https://github.com/sugatoray/aiskills), installed in `.agents/skills/` and pinned in
+  `skills-lock.json`.
+- A maintainer tool that builds the callai-cli banner (`make maint.banner`); see
+  [`src/tools/banner/CHANGELOG.md`](src/tools/banner/CHANGELOG.md). It is not packaged.
 - Tested on Python 3.11, 3.12, 3.13 and 3.14. `make test.matrix` runs the suite once per version, each in an
   isolated environment that uv creates (set `PYTHON_VERSIONS` to choose); `make test` runs it on the
   development Python, now pinned to 3.11 in `.python-version`. A GitHub Actions workflow
-  (`.github/workflows/tests.yml`) runs the same matrix plus ruff and interrogate on pushes to `master` and
-  on pull requests. `pyproject.toml` lists the four versions as classifiers; `requires-python` stays
+  (`.github/workflows/tests.yml`) runs the same matrix plus ruff and interrogate. `pyproject.toml` lists the four versions as classifiers; `requires-python` stays
   `>=3.11` (no upper cap).
 
 ### Fixed

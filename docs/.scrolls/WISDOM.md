@@ -52,8 +52,16 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - Only valid trove classifiers (https://pypi.org/classifiers/) — PyPI rejects an upload with an unknown one (`AI Engineers`, `Agentic Harness`, `Software Development :: CLI` are not real). `Typing :: Typed` needs a `py.typed` file listed in `package-data`.
 - Changing `[tool.uv]` (e.g. `exclude-newer`) makes `uv sync --locked` fail until `uv lock` is re-run and committed.
 - A reusable workflow evaluates `concurrency` itself, with the *caller's* `github.workflow`/`github.ref`: give the caller a different group than the called workflow, or the callee cancels itself.
-- `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards.
+- `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards. Exception, by the owner's decision: `prune src/tools` + `recursive-exclude src/tools *` stay as a failsafe, warnings and all.
 - A `workflow_dispatch` workflow only shows its "Run workflow" button once the file is on the default branch, and the `github-pages` environment normally refuses deploys from other branches. Give the workflow a build-only input if it must run from any branch.
+- pytest `addopts` carries `--cov=callai` and coverage `fail_under = 95`: running only a non-callai test folder (e.g. `pytest src/tools/banner/tests`) fails on coverage alone. Pass `--no-cov` for such subsets.
+- A page that saves edits in `localStorage` under a fixed key keeps showing old saved text after it is regenerated with new content. `create_banner.py` derives `STORE_KEY` from a hash of the filled-in content.
+- A template comment that mentions the placeholder syntax (`{{ name }}`) is itself a placeholder to the renderer. Describe the syntax in words in the template.
+- In this container full Chrome's `--screenshot` (`/usr/bin/google-chrome` and `/opt/pw-browsers/chromium`, Chrome for Testing 153) hangs even on `data:text/html,hi`; Playwright's `chrome-headless-shell` (`/opt/pw-browsers/chromium_headless_shell-*`) works in ~1 s. Always pass a timeout to a headless-browser subprocess.
+- The container exports `CHROME_BIN`/`CHROME_PATH`/`PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome` (the Chrome that hangs). `create_banner.py` honours only its own `$CHROME`; tests that depend on browser lookup must clear such variables with `monkeypatch`.
+- argparse runs `type=` on a **string** `const` (`nargs="?"`): `const="<default>"` with `type=Path` became `Path("<default>")` and a stray file in the repo. Use a non-string sentinel (`object()`) and compare with `is`.
+- A Python regex for a marker line with `re.S`: write `[^\n]*`, not `.*`, around the marker, or `.*` runs past the line and the captured block comes back empty.
+- JetBrains Mono turns `==` into one wide glyph; terminal mock-ups that show `== name ==` need `font-variant-ligatures: none`.
 
 ## Ditches — bad patterns or decisions to avoid
 Bad patterns or decisions to never take, and why they were rejected.

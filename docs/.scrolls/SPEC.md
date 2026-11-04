@@ -97,8 +97,26 @@ Ctrl-C stops all. Code: `src/callai/fanout.py`, `cli._execute_many`.
 `make docs.html` writes `build/docs.html`: every page and diagram of `docs/callai/` in one self-contained page,
 with a tab per docs section, a page list, an on-this-page outline that follows your scroll, search (`/`), copy
 buttons on code, and a light/dark toggle that remembers your choice. Links between pages stay in the page; links
-to other repo files open on GitHub at `DOCS_REF` (default: the current branch). Markdown is rendered in the
+to other repo files open on GitHub at `DOCS_REF` (default: the current branch). The header has a GitHub button (the repository, no branch)
+next to the theme toggle, and a magnifying-glass icon in the search box (icon only on phones). The landing page
+opens with the project banner as live HTML (copied from `src/tools/banner/callai-banner.html` without the editing features,
+scaled to the column; `--banner PATH` / `--no-banner`). Markdown is rendered in the
 browser (marked + highlight.js from cdnjs). Code: `docs/site/build_docs_html.py`, `docs/site/template.html`.
+
+## Project banner (`make maint.banner`)
+
+A maintainer tool, not shipped in the package. `make maint.banner` writes `src/tools/banner/callai-banner.html`:
+a 1280 × 640 banner page showing the wordmark, version/Python/license badges, tagline, install command, a
+terminal demo and the harness row. All its text comes from `src/tools/banner/config.yaml`; `"auto"` values
+track the repository (version, Python requirement, license and URL from `pyproject.toml`, harnesses from the
+registry). `make maint.banner BANNER_PACKAGE_VERSION=X.Y.Z` shows another version. In a browser the page has an
+Edit/Save toggle (saved per build in browser storage), Save HTML, Reset, and PNG export with the banner's own,
+white, black or transparent background at 1x, 2x (default) or 4x ("Export all 12" for every combination).
+`make maint.banner.png` renders it with headless Chrome to `docs/assets/images/banner_2x.png` at 2x, plus 1x
+examples of the two install-command layouts (`install_style`: `box`, option A, default; `chips`, option B) in
+`src/tools/banner/assets/option_{a_box,b_chip}.png`, shown in the banner README. The page's toolbar can flip
+the layout live. Details:
+`src/tools/banner/README.md`.
 
 ## Changelog convention
 
