@@ -1,3 +1,5 @@
+![callai: one command line for every coding-agent harness](https://raw.githubusercontent.com/sugatoray/callai/master/docs/assets/images/banner_2x.png)
+
 # callai
 
 `callai` is one command line for every coding-agent harness. It runs a single prompt non-interactively, like `claude -p`, through the harness you pick and prints the result:
