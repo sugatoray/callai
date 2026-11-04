@@ -1,0 +1,51 @@
+# Data for the callai-cli banner. `make maint.banner` reads this file and
+# assets/callai-banner-template.html and writes callai-banner.html.
+#
+# Rules: every value is a double-quoted string, or a list of double-quoted strings.
+# "auto" means read the value from the repository:
+#   package_name, package_version, python_requires, license, repo_url -> pyproject.toml
+#   harnesses                                                         -> src/callai/adapters/__init__.py (HARNESS_NAMES)
+# Text values can use {package_name}, {package_version}, {python_requires}, {license} and {repo_url}.
+# Command-line flags (--package-version, --set KEY=VALUE, ...) override this file.
+
+# ── From the repository ("auto") or set by hand ──
+package_name: "auto"
+package_version: "auto"
+python_requires: "auto"
+license: "auto"
+repo_url: "auto"
+harnesses: "auto"
+
+# ── Page ──
+page_title: "{package_name} banner"
+
+# ── Badges ──
+version_label: "v{package_version}"
+python_label: "Python {python_requires}"
+license_label: "{license}"
+
+# ── Wordmark and copy ──
+mark_glyph: ">_"
+wordmark_plain: "call"
+wordmark_accent: "ai"
+tagline: "One command line for every coding‑agent harness."
+subtitle: "Run a prompt non-interactively through the harness you pick, and get one normalised result: text, JSON or a live event stream."
+install_command: "pip install {package_name}"
+
+# ── Terminal demo (harness names must be in `harnesses`) ──
+terminal_title: "~/project — zsh"
+fanout_harnesses:
+  - "codex"
+  - "claude-code"
+  - "grok"
+fanout_durations:
+  - "4.1s"
+  - "5.3s"
+  - "3.8s"
+fanout_prompt: "Explain main.py"
+pipe_harness: "pi"
+pipe_prompt: "Review this"
+
+# ── Harness row ──
+harness_label: "works with"
+repo_label: "{repo_url}"

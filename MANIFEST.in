@@ -13,3 +13,7 @@ include .python-version
 # .claude/, Makefile, the agent/scrolls files. Without a VCS plugin (setuptools-scm) setuptools only
 # packs the files above plus the packages found in src/ (callai*), so they stay out of the sdist.
 # If a plugin is added later, restore `recursive-exclude` lines for them.
+
+# Maintainer tools (banner builder, its template, config and tests) never ship.
+prune src/tools
+recursive-exclude src/tools *

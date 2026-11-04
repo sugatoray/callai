@@ -77,7 +77,7 @@ namespaces = false
 callai = ["py.typed"]  # PEP 561 marker, matches the "Typing :: Typed" classifier
 
 [tool.pytest.ini_options]
-testpaths = ["src/tests"]
+testpaths = ["src/tests", "src/tools/banner/tests"]
 pythonpath = ["src"]
 addopts = "--cov=callai --cov-report=term-missing"
 markers = ["live: calls a real harness and model; skipped unless CALLAI_LIVE is set (see src/tests/test_live.py)"]
@@ -111,6 +111,7 @@ convention = "google"
 
 [tool.ruff.lint.per-file-ignores]
 "src/tests/*" = ["D", "DOC"]
+"src/tools/*/tests/*" = ["D", "DOC"]
 
 [tool.ruff.format]
 quote-style = "double"
@@ -119,7 +120,7 @@ quote-style = "double"
 fail-under = 100
 style = "google"
 verbose = 1
-exclude = ["src/tests", "build", "dist", ".venv"]
+exclude = ["src/tests", "src/tools/banner/tests", "build", "dist", ".venv"]
 
 [tool.uv]
 #########################################################################################

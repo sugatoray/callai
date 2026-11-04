@@ -1,9 +1,10 @@
 <!doctype html>
+<!-- Template for src/tools/banner/create_banner.py: double-brace placeholders are filled from config.yaml. Edit this file, not callai-banner.html, then run `make maint.banner`. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>callai banner</title>
+<title>{{ page_title }}</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" crossorigin="anonymous"
@@ -218,7 +219,7 @@
 <body>
 
 <div class="toolbar" role="toolbar" aria-label="Banner tools">
-  <div class="title">callai banner <small>1280 × 640</small></div>
+  <div class="title">{{ page_title }} <small>1280 × 640</small></div>
 
   <button class="btn" id="editToggle" aria-pressed="false">✎ Edit</button>
 
@@ -266,50 +267,35 @@
       <div class="content">
         <div class="left">
           <div class="badges">
-            <span class="badge" data-edit><b>v0.8.0</b> · Python ≥ 3.11</span>
-            <span class="badge" data-edit>Apache-2.0</span>
+            <span class="badge" data-edit><b>{{ version_label }}</b> · {{ python_label }}</span>
+            <span class="badge" data-edit>{{ license_label }}</span>
           </div>
 
           <div class="wordmark">
-            <div class="mark"><span data-edit>&gt;_</span></div>
-            <h1 class="name" data-edit>call<span class="grad">ai</span></h1>
+            <div class="mark"><span data-edit>{{ mark_glyph }}</span></div>
+            <h1 class="name" data-edit>{{ wordmark_plain }}<span class="grad">{{ wordmark_accent }}</span></h1>
           </div>
 
-          <p class="tagline" data-edit>One command line for every coding‑agent harness.</p>
-          <p class="sub" data-edit>Run a prompt non-interactively through the harness you pick, and get one normalised result: text, JSON or a live event stream.</p>
+          <p class="tagline" data-edit>{{ tagline }}</p>
+          <p class="sub" data-edit>{{ subtitle }}</p>
 
-          <div class="install"><span class="dollar">$</span><span data-edit>pip install callai-cli</span></div>
+          <div class="install"><span class="dollar">$</span><span data-edit>{{ install_command }}</span></div>
         </div>
 
         <div class="terminal">
           <div class="term-bar">
             <i style="background:#ff8a7a"></i><i style="background:#f2b36b"></i><i style="background:#9fd88a"></i>
-            <span class="t" data-edit>~/project — zsh</span>
+            <span class="t" data-edit>{{ terminal_title }}</span>
           </div>
-<div class="term-body" data-edit><span class="p">$</span> callai <span class="f">-n</span> codex/claude-code/grok \
-    <span class="f">-p</span> <span class="s">"Explain main.py"</span>
-<span class="h">== codex ==</span>        <span class="ok">✓</span> <span class="c">4.1s</span>
-<span class="h">== claude-code ==</span>  <span class="ok">✓</span> <span class="c">5.3s</span>
-<span class="h">== grok ==</span>         <span class="ok">✓</span> <span class="c">3.8s</span>
-
-<span class="p">$</span> git diff | callai <span class="f">-n</span> pi \
-    <span class="f">-p</span> <span class="s">"Review this"</span> <span class="f">-o</span> json
-<span class="c">{"harness_name": "pi", "is_error": false, …}</span>
-
-<span class="p">$</span> <span class="cursor"></span></div>
+<div class="term-body" data-edit>{{ terminal_body }}</div>
         </div>
 
         <div class="harnesses">
-          <span class="label" data-edit>works with</span>
+          <span class="label" data-edit>{{ harness_label }}</span>
           <div class="pills" id="pills" data-edit>
-            <span class="pill">claude-code</span>
-            <span class="pill">codex</span>
-            <span class="pill">opencode</span>
-            <span class="pill">pi</span>
-            <span class="pill">grok</span>
-            <span class="pill">hermes</span>
+{{ harness_pills }}
           </div>
-          <span class="url" data-edit>github.com/sugatoray/callai</span>
+          <span class="url" data-edit>{{ repo_label }}</span>
         </div>
       </div>
     </div>
@@ -320,7 +306,7 @@
 
 <script>
 (() => {
-  const STORE_KEY = 'callai-banner:v1';
+  const STORE_KEY = '{{ store_key }}';
   const banner = document.getElementById('banner');
   const scaler = document.getElementById('scaler');
   const stage = document.getElementById('stage');

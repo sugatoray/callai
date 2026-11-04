@@ -7,6 +7,7 @@
 #   make install.harnesses     install all of them
 #   make install.<tool>        install one (tool = the callai --name value)
 #   make docs.html             bundle docs/callai/ into one HTML page (build/docs.html)
+#   make maint.banner          rebuild src/tools/banner/callai-banner.html from its template + config.yaml
 #   make test                  run the tests on the pinned development Python (.python-version)
 #   make test.matrix           run the tests on every supported Python (PYTHON_VERSIONS)
 #   make pkg.build             build the sdist + wheel into dist/ (uv build)
@@ -34,7 +35,7 @@ GROK_VERSION := 1.0.70
 
 HARNESSES := claude-code codex opencode pi hermes grok
 
-.PHONY: help test test.matrix docs.html pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
+.PHONY: help test test.matrix docs.html maint.banner maint.banner.check pkg.build pkg.publish pkg.install.e pkg.install.local pkg.install.pypi install.harnesses $(addprefix install.,$(HARNESSES)) require.npm require.uv
 
 help: ## Show this help
 	@echo "Targets:"
@@ -103,6 +104,22 @@ DOCS_REF ?= $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null || echo main)
 
 docs.html: ## Bundle docs/callai/ into one HTML page with tabs, page list, outline and theme toggle (DOCS_HTML=build/docs.html)
 	python3 docs/site/build_docs_html.py docs/callai --out $(DOCS_HTML) --ref $(DOCS_REF)
+
+# Banner (maintainer tool, not packaged). Fills src/tools/banner/assets/callai-banner-template.html with the
+# values in src/tools/banner/config.yaml; "auto" values come from pyproject.toml and the harness registry.
+# Override on the command line, e.g.
+#   make maint.banner BANNER_PACKAGE_VERSION=0.9.0
+#   make maint.banner BANNER_ARGS='--set tagline="Hello" --harnesses codex,pi'
+BANNER_PYTHON ?= uv run --no-project python
+BANNER_PACKAGE_VERSION ?=
+BANNER_ARGS ?=
+BANNER_CMD = $(BANNER_PYTHON) src/tools/banner/create_banner.py $(if $(BANNER_PACKAGE_VERSION),--package-version $(BANNER_PACKAGE_VERSION)) $(BANNER_ARGS)
+
+maint.banner: ## Rebuild src/tools/banner/callai-banner.html from the template and config.yaml (BANNER_PACKAGE_VERSION=, BANNER_ARGS=)
+	$(BANNER_CMD)
+
+maint.banner.check: ## Exit 1 if src/tools/banner/callai-banner.html is out of date
+	$(BANNER_CMD) --check
 
 install.harnesses: $(addprefix install.,$(HARNESSES)) ## Install every harness CLI callai supports
 	@echo "All harnesses installed: $(HARNESSES)"
