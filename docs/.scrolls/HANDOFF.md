@@ -14,7 +14,7 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - Maintainer tools live in `src/tools/` (not packaged). The first is the banner builder `src/tools/banner/` (CA-27), with its own `README.md` and `CHANGELOG.md`.
 
 ## What just happened
-- CA-27 banner, on branch `claude/friendly-darwin-kqdygb` (pushed, no PR yet):
+- CA-27 banner, on branch `claude/friendly-darwin-kqdygb`, PR https://github.com/sugatoray/callai/pull/46 (opened from the Claude Code UI):
   - The editable banner page (1280 × 640: Edit/Save toggle, PNG export as is/white/black/transparent at 1x/2x/4x via `html-to-image` 1.11.11 from jsDelivr) became the template `src/tools/banner/assets/callai-banner-template.html`. It was first committed at `docs/callai/images/callai-banner.html`, which no longer exists.
   - `src/tools/banner/create_banner.py` (stdlib only) fills the template's `{{ name }}` placeholders from `src/tools/banner/config.yaml`. Every value is double-quoted (a strict YAML-subset parser; a test checks it matches PyYAML). `"auto"` values come from `pyproject.toml` and `HARNESS_NAMES` (read with `ast`, not imported). Flags `--package-version` etc. and `--set KEY=VALUE` override the config; `--check` exits 1 when stale.
   - Output `src/tools/banner/callai-banner.html` is committed. `make maint.banner` (`BANNER_PACKAGE_VERSION=`, `BANNER_ARGS=`, `BANNER_PYTHON=`) rebuilds it; `make maint.banner.check` checks it.
