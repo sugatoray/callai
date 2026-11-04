@@ -13,6 +13,7 @@ you can edit in the browser and export as PNG. It is not part of the `callai` pa
 | `create_banner.py` | The builder: fills the template from the config and the repository. Standard library only. |
 | `callai-banner.html` | The generated page (committed). **Don't edit by hand**: run `make maint.banner` instead. |
 | `tests/` | Tests for the builder. They run with `make test`. |
+| `CHANGELOG.md` | Changes to this tool (the root `CHANGELOG.md` covers callai itself). |
 
 ## Make commands
 
