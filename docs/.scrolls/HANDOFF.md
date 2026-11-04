@@ -3,7 +3,7 @@
 Snapshot of where the project stands *right now*. This file is short-lived: **overwrite** it at the end of every session rather than appending — it's a state snapshot, not a changelog.
 
 ## Current state
-- Repository `sugatoray/callai` is now the primary home (imported from `sugatoray/devx` `src/experiments/expt_callai` at 0.8.0; the devx copy is no longer where it is developed). Branch `feat/import-callai` (no PR yet). Version **0.8.0** (CHANGELOG 0.1.0…0.5.0 cut 2026-10-30, 0.6.0 on 2026-10-31, 0.7.0 (docs) and 0.8.0 (`make docs.html`) on 2026-11-01; no git tags, tag after merge). `[Unreleased]` is empty.
+- Repository `sugatoray/callai` is now the primary home (imported from `sugatoray/devx` `src/experiments/expt_callai` at 0.8.0; the devx copy is no longer where it is developed). The import branch `feat/import-callai` was merged and deleted. Version **0.8.0** (CHANGELOG 0.1.0…0.5.0 cut 2026-10-30, 0.6.0 on 2026-10-31, 0.7.0 (docs) and 0.8.0 (`make docs.html`) on 2026-11-01; no git tags yet). `[Unreleased]` is empty.
 - CA-0…CA-15c, CA-19…CA-24 done. Remaining backlog is Later only: CA-16 TypeScript port, CA-17/18 Rust.
 - CLI: `callai -n HARNESS_NAME|a/b|a,b|all -p PROMPT [...]`, `-o text|json|stream-json|raw`, `--resume ID`/`--continue`; Python API `callai.run(...)`.
 - User docs: `docs/callai/` (32 pages, 5 SVGs, `llms.txt`/`llms-full.txt`), written with the `/create-lib-docs` skill (published in `sugatoray/aiskills`). `make docs.html` bundles them into `build/docs.html` (gitignored).
@@ -13,6 +13,8 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - 531 tests (+12 live, skipped by default), 99% coverage, ruff and interrogate clean. 74 conformance CLI cases. The suite takes ~42 s (fan-out timing tests sleep).
 
 ## What just happened
+- Ruff (`pyproject.toml`) now excludes `.agents` and `.claude`, because the installed skills' Python files made `ruff check .` fail in CI. `ruff check` and `ruff format --check` pass locally; the CI run on PR #30 has not been checked yet.
+- Installed agent skills from `sugatoray/aiskills` with `npx skills add` for Codex and Claude Code: scrolls-setup/-update/-help/-hide/-unhide, create-issues-update-pr, create-lib-docs (`create-lob-docs` was a typo for `create-lib-docs`). Files are in `.agents/skills/` (Claude Code symlinks via `.claude/skills/`), pinned in `skills-lock.json`. Pushed on branch `claude/blissful-bell-tqq4l2`, PR https://github.com/sugatoray/callai/pull/30.
 - CA-25: Python 3.11–3.14 support made explicit (pin, `make test.matrix`, CI workflow, classifiers). Fixed a test that failed on 3.13 (argparse help layout).
 - Moved to `sugatoray/callai`: `expt_callai`/"this experiment" wording replaced with callai / the repository root; `pyproject.toml` `[project.urls]` now point here; docs links point here.
 - 0.8.0 cut (`make docs.html`); the artifact was republished from the 0.8.0 build.
@@ -25,5 +27,5 @@ Snapshot of where the project stands *right now*. This file is short-lived: **ov
 - Live tests verified only for claude-code (no model access for the others here).
 - Windows still blocks on an idle stdin pipe.
 - Fan-out: shared working directory; `-v` stderr not prefixed in parallel.
-- Next: CA-16 (TypeScript port) if wanted, or merge `feat/import-callai` into `master` and tag v0.1.0…v0.8.0 (or just v0.8.0).
+- Next: CA-16 (TypeScript port) if wanted, or tag v0.1.0…v0.8.0 (or just v0.8.0), since the import is merged.
 - Gemma via Hugging Face: needs `router.huggingface.co` allowed and an HF_TOKEN. Untested.
