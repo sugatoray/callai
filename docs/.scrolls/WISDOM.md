@@ -53,6 +53,7 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - Changing `[tool.uv]` (e.g. `exclude-newer`) makes `uv sync --locked` fail until `uv lock` is re-run and committed.
 - A reusable workflow evaluates `concurrency` itself, with the *caller's* `github.workflow`/`github.ref`: give the caller a different group than the called workflow, or the callee cancels itself.
 - `MANIFEST.in` `recursive-exclude` lines for paths setuptools never packs (no setuptools-scm here) do nothing but emit "no files matching" warnings; only list excludes that have an effect. `pkg.install.local` replaces an editable install in `.venv`: re-run `make pkg.install.e` afterwards.
+- A `workflow_dispatch` workflow only shows its "Run workflow" button once the file is on the default branch, and the `github-pages` environment normally refuses deploys from other branches. Give the workflow a build-only input if it must run from any branch.
 
 ## Ditches — bad patterns or decisions to avoid
 Bad patterns or decisions to never take, and why they were rejected.
