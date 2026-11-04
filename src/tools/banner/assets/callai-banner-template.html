@@ -84,6 +84,7 @@
   .scaler { position: absolute; left: 0; top: 0; width: 1280px; height: 640px; transform-origin: 0 0; }
 
   /* ───────────── Banner (exported) ───────────── */
+  /* banner:css:start (docs/site/build_docs_html.py copies everything up to banner:css:end) */
   #banner {
     --bg: #0d1517;
     --fg: #e8f0f0;
@@ -205,6 +206,8 @@
   #banner .pill:nth-child(6n+6) { --dot: var(--coral); }
   #banner .harnesses .url { margin-left: auto; font: 500 15px/1 "JetBrains Mono", monospace; color: var(--muted); white-space: nowrap; }
 
+  /* banner:css:end */
+
   /* Edit mode affordances (stripped on export) */
   #banner.editing [data-edit] { outline: 1.5px dashed rgba(92, 198, 207, .7); outline-offset: 4px; border-radius: 4px; cursor: text; }
   #banner.editing [data-edit]:focus { outline: 2px solid #5cc6cf; }
@@ -271,6 +274,7 @@
 
 <div class="stage" id="stage">
   <div class="scaler" id="scaler">
+    <!-- banner:html:start (copied by docs/site/build_docs_html.py, without the editing hooks) -->
     <div id="banner">
       <div class="bg-layer bg-glow"></div>
       <div class="bg-layer bg-grid"></div>
@@ -310,6 +314,7 @@
         </div>
       </div>
     </div>
+    <!-- banner:html:end -->
   </div>
 </div>
 

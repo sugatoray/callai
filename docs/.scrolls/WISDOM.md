@@ -60,6 +60,7 @@ Specific bugs that have bitten this project before — avoid repeating them.
 - In this container full Chrome's `--screenshot` (`/usr/bin/google-chrome` and `/opt/pw-browsers/chromium`, Chrome for Testing 153) hangs even on `data:text/html,hi`; Playwright's `chrome-headless-shell` (`/opt/pw-browsers/chromium_headless_shell-*`) works in ~1 s. Always pass a timeout to a headless-browser subprocess.
 - The container exports `CHROME_BIN`/`CHROME_PATH`/`PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome` (the Chrome that hangs). `create_banner.py` honours only its own `$CHROME`; tests that depend on browser lookup must clear such variables with `monkeypatch`.
 - argparse runs `type=` on a **string** `const` (`nargs="?"`): `const="<default>"` with `type=Path` became `Path("<default>")` and a stray file in the repo. Use a non-string sentinel (`object()`) and compare with `is`.
+- A Python regex for a marker line with `re.S`: write `[^\n]*`, not `.*`, around the marker, or `.*` runs past the line and the captured block comes back empty.
 - JetBrains Mono turns `==` into one wide glyph; terminal mock-ups that show `== name ==` need `font-variant-ligatures: none`.
 
 ## Ditches — bad patterns or decisions to avoid

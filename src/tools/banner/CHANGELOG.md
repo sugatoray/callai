@@ -10,6 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- `banner:css:start`/`end` and `banner:html:start`/`end` markers in the template. `make docs.html`
+  (`docs/site/build_docs_html.py`) copies the banner's CSS and markup between them, without the editing hooks,
+  to the top of the docs landing page.
 - PNG export from the command line: `--png [PATH]` (default `docs/assets/images/banner_<scale>x.png`, so `banner_2x.png`), `--scale`
   (default **2**), `--background`, `--ink` and `--chrome`, and `make maint.banner.png` (`BANNER_PNG`,
   `BANNER_SCALE`, `BANNER_BACKGROUND`, `BANNER_INK`, `BANNER_CHROME`).

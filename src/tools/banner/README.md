@@ -195,6 +195,14 @@ library (`html-to-image`, loaded from a CDN).
 Edits made in the browser stay in the browser. To change the banner for good, edit `config.yaml` (or the
 template) and run `make maint.banner`.
 
+## Used by the docs page
+
+`make docs.html` (`docs/site/build_docs_html.py`) shows this banner at the top of the docs landing page. It
+copies the CSS between the `banner:css:start`/`banner:css:end` comments and the markup between
+`banner:html:start`/`banner:html:end` from `callai-banner.html`, without `data-edit` and the editor's ids, and
+with the wordmark `<h1>` turned into a `<div>` so it stays out of the page outline. Keep those markers in the
+template. Run `make maint.banner` before `make docs.html` so the docs get the current banner.
+
 ## Tests
 
 ```bash

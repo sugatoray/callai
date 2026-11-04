@@ -5,8 +5,9 @@ Usage: python3 docs/site/build_docs_html.py docs/callai --out build/docs.html [-
 Tabs follow the landing page's `### Section` groups and the pages linked under each. Every page's
 Markdown and every SVG in images/ are embedded as JSON; the page renders them in the browser with
 marked and highlight.js, loaded from cdnjs. Links to files outside the docs point at GitHub on --ref.
-The landing page opens with the project banner (--banner, default docs/assets/images/banner_2x.png, made
-by `make maint.banner.png`), embedded like the SVGs; --no-banner leaves it out.
+The landing page opens with the project banner: its markup and CSS, without the editing features, copied
+from src/tools/banner/callai-banner.html (`make maint.banner`). --banner picks another file, --no-banner
+leaves it out.
 """
 
 import argparse
@@ -21,15 +22,8 @@ HERE = Path(__file__).resolve().parent
 REPO = "https://github.com/sugatoray/callai"
 DOCS_IN_REPO = "docs/callai/"
 TAB_LABELS = {"Help": "FAQ", "How-to guides": "Guides"}
-BANNER = HERE.parents[1] / "docs" / "assets" / "images" / "banner_2x.png"
+BANNER = HERE.parents[1] / "src" / "tools" / "banner" / "callai-banner.html"
 BANNER_ALT = "callai: one command line for every coding-agent harness"
-MIME = {
-    ".png": "image/png",
-    ".svg": "image/svg+xml",
-    ".jpg": "image/jpeg",
-    ".jpeg": "image/jpeg",
-    ".webp": "image/webp",
-}
 
 
 def page_id(rel: str) -> str:
@@ -95,35 +89,60 @@ def version() -> str:
 
 
 def data_uri(path: Path) -> str:
-    """Encode an image file as a data: URI.
+    """Encode an SVG file as a data: URI.
 
     Args:
-        path: the image file.
+        path: the SVG file.
 
     Returns:
-        The URI, with the MIME type taken from the file's extension.
+        The URI.
     """
-    mime = MIME.get(path.suffix.lower(), "application/octet-stream")
-    return f"data:{mime};base64," + base64.b64encode(path.read_bytes()).decode()
+    return "data:image/svg+xml;base64," + base64.b64encode(path.read_bytes()).decode()
 
 
-def add_banner(pages: list[dict], images: dict[str, str], banner: Path) -> None:
-    """Put the banner image at the top of the landing page and embed it.
+def _between(text: str, start: str, end: str, path: Path) -> str:
+    """Return the text between two marker comments.
 
     Args:
-        pages: the collected pages; the one with id "home" gets the banner.
-        images: the embedded images, keyed by path relative to the docs folder.
-        banner: the banner image file.
+        text: the file's contents.
+        start: the opening marker's name, e.g. "banner:html:start".
+        end: the closing marker's name.
+        path: the file, for the error message.
+
+    Returns:
+        The text after the line holding ``start`` and before the line holding ``end``.
 
     Raises:
-        SystemExit: the banner file doesn't exist.
+        SystemExit: a marker is missing.
     """
-    if not banner.is_file():
-        raise SystemExit(f"banner image not found: {banner} (run `make maint.banner.png`, or pass --no-banner)")
-    key = f"images/{banner.name}"
-    images[key] = data_uri(banner)
-    home = next(p for p in pages if p["id"] == "home")
-    home["md"] = f"![{BANNER_ALT}]({key})\n\n" + home["md"]
+    m = re.search(rf"^[^\n]*{re.escape(start)}[^\n]*\n(.*?)^[^\n]*{re.escape(end)}", text, re.S | re.M)
+    if not m:
+        raise SystemExit(f"{path}: no {start} ... {end} markers")
+    return m.group(1)
+
+
+def banner_parts(path: Path) -> tuple[str, str]:
+    """Copy the banner's markup and CSS out of the banner page, without its editing features.
+
+    Args:
+        path: the generated banner page (src/tools/banner/callai-banner.html).
+
+    Returns:
+        (markup, css). The markup has no ``data-edit`` hooks or ids the editor uses, and its
+        wordmark heading becomes a ``div`` so it stays out of the page outline.
+
+    Raises:
+        SystemExit: the file is missing or lacks the banner:html / banner:css markers.
+    """
+    if not path.is_file():
+        raise SystemExit(f"banner page not found: {path} (run `make maint.banner`, or pass --no-banner)")
+    text = path.read_text(encoding="utf-8")
+    markup = _between(text, "banner:html:start", "banner:html:end", path)
+    css = _between(text, "banner:css:start", "banner:css:end", path)
+    markup = re.sub(r"\s(?:data-edit|contenteditable(?:=\"[^\"]*\")?)(?=[\s>])", "", markup)
+    markup = markup.replace(' id="pills"', "")
+    markup = re.sub(r"<h1(\s[^>]*)?>(.*?)</h1>", r"<div\1>\2</div>", markup, flags=re.S)
+    return markup.strip("\n"), css.strip("\n")
 
 
 def build(docs: Path, ref: str, banner: Path | None = BANNER) -> tuple[str, int]:
@@ -132,25 +151,27 @@ def build(docs: Path, ref: str, banner: Path | None = BANNER) -> tuple[str, int]
     Args:
         docs: the docs folder.
         ref: the git branch or tag that links to files outside the docs point at.
-        banner: the image shown at the top of the landing page, or None for none.
+        banner: the banner page whose banner opens the landing page, or None for none.
 
     Returns:
         (the page's HTML, the number of pages bundled).
     """
     tabs, pages = collect(docs)
     images = {f"images/{p.name}": data_uri(p) for p in sorted((docs / "images").glob("*.svg"))}
-    if banner is not None:
-        add_banner(pages, images, banner)
+    markup, css = banner_parts(banner) if banner is not None else (None, "")
     data = {
         "tabs": tabs,
         "pages": pages,
         "images": images,
         "repoBase": f"{REPO}/blob/{ref}/{DOCS_IN_REPO}",
         "treeBase": f"{REPO}/tree/{ref}/{DOCS_IN_REPO}",
+        "banner": markup,
+        "bannerLabel": BANNER_ALT,
     }
     blob = json.dumps(data, ensure_ascii=False).replace("</", "<\\/")  # never close the <script> early
     template = (HERE / "template.html").read_text(encoding="utf-8")
-    html = template.replace("{{VERSION}}", version()).replace("/*__DOCS_DATA__*/null", blob)
+    html = template.replace("{{VERSION}}", version()).replace("/*__BANNER_CSS__*/", css)
+    html = html.replace("/*__DOCS_DATA__*/null", blob)
     return html, len(pages)
 
 
@@ -165,7 +186,12 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--out", type=Path, required=True, help="the HTML file to write")
     parser.add_argument("--ref", default="main", help="git branch or tag for links to GitHub (default: main)")
     group = parser.add_mutually_exclusive_group()
-    group.add_argument("--banner", type=Path, default=BANNER, help="image at the top of the landing page")
+    group.add_argument(
+        "--banner",
+        type=Path,
+        default=BANNER,
+        help="banner page whose banner opens the landing page (default: src/tools/banner/callai-banner.html)",
+    )
     group.add_argument("--no-banner", dest="banner", action="store_const", const=None, help="no banner")
     args = parser.parse_args(argv)
     html, count = build(args.docs, args.ref, args.banner)

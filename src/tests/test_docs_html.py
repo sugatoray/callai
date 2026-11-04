@@ -1,6 +1,5 @@
 """The single-page HTML docs bundle (make docs.html) must carry every page and diagram."""
 
-import base64
 import importlib.util
 import json
 import re
@@ -34,8 +33,7 @@ def test_bundle_holds_every_page_and_image(tmp_path):
 
     pages = {p["path"] for p in data["pages"]}
     assert pages == {str(p.relative_to(DOCS)) for p in DOCS.rglob("*.md")}
-    svgs = {f"images/{p.name}" for p in DOCS.glob("images/*.svg")}
-    assert set(data["images"]) == svgs | {"images/banner_2x.png"}
+    assert set(data["images"]) == {f"images/{p.name}" for p in DOCS.glob("images/*.svg")}
     assert [t["id"] for t in data["tabs"]][0] == "home"
     assert {"tutorial", "guides", "concepts", "reference", "faq"} <= {t["id"] for t in data["tabs"]}
     assert data["repoBase"].startswith("https://github.com/sugatoray/callai/blob/some-branch/")
@@ -64,42 +62,48 @@ def test_unlisted_page_is_an_error(tmp_path):
         raise AssertionError("expected an error for a page missing from README.md")
 
 
-BANNER = ROOT / "docs" / "assets" / "images" / "banner_2x.png"
+BANNER = ROOT / "src" / "tools" / "banner" / "callai-banner.html"
 
 
-def test_landing_page_starts_with_the_banner(tmp_path):
+def _build(tmp_path, *args):
     out = tmp_path / "docs.html"
-    _builder().main([str(DOCS), "--out", str(out)])
-    data = _data(out.read_text(encoding="utf-8"))
+    _builder().main([str(DOCS), "--out", str(out), *args])
+    html = out.read_text(encoding="utf-8")
+    return html, _data(html)
+
+
+def test_landing_page_banner_is_the_static_banner_html(tmp_path):
+    html, data = _build(tmp_path)
+    banner = data["banner"]
+    assert banner.lstrip().startswith('<div id="banner">')
+    assert f"v{callai.__version__}" in banner
+    for name in ("claude-code", "codex", "opencode", "pi", "hermes", "grok"):
+        assert f'<span class="pill">{name}</span>' in banner
+    # no editing features
+    assert "data-edit" not in banner and "contenteditable" not in banner and 'id="pills"' not in banner
+    # its wordmark must not become a page heading (outline, anchors)
+    assert "<h1" not in banner and '<div class="name">' in banner
+    # its CSS comes along, without the editor's rules
+    assert "#banner .terminal" in html and "#banner.editing" not in html and "html.bare" not in html
+    # the Markdown is untouched and no image is embedded for it
     home = next(p for p in data["pages"] if p["id"] == "home")
-    first = home["md"].splitlines()[0]
-    assert re.fullmatch(r"!\[[^\]]+\]\(images/banner_2x\.png\)", first)
-    assert home["title"] == "callai"  # the page title still comes from the first heading
-    uri = data["images"]["images/banner_2x.png"]
-    assert uri.startswith("data:image/png;base64,")
-    assert base64.b64decode(uri.split(",", 1)[1]) == BANNER.read_bytes()
-    others = [p for p in data["pages"] if p["id"] != "home"]
-    assert not any("banner_2x.png" in p["md"] for p in others)
+    assert home["md"] == (DOCS / "README.md").read_text(encoding="utf-8")
+    assert not any(k.endswith(".png") for k in data["images"])
 
 
 def test_no_banner_option(tmp_path):
-    out = tmp_path / "docs.html"
-    _builder().main([str(DOCS), "--out", str(out), "--no-banner"])
-    data = _data(out.read_text(encoding="utf-8"))
-    assert "images/banner_2x.png" not in data["images"]
-    assert not next(p for p in data["pages"] if p["id"] == "home")["md"].startswith("![")
+    html, data = _build(tmp_path, "--no-banner")
+    assert data["banner"] is None
+    assert "#banner .terminal" not in html and "/*__BANNER_CSS__*/" not in html
 
 
-def test_custom_and_missing_banner(tmp_path):
-    custom = tmp_path / "my_banner.png"
-    custom.write_bytes(b"\x89PNG fake")
-    out = tmp_path / "docs.html"
-    _builder().main([str(DOCS), "--out", str(out), "--banner", str(custom)])
-    data = _data(out.read_text(encoding="utf-8"))
-    assert "images/my_banner.png" in data["images"]
-    try:
-        _builder().main([str(DOCS), "--out", str(out), "--banner", str(tmp_path / "missing.png")])
-    except SystemExit as exc:
-        assert "missing.png" in str(exc)
-    else:
-        raise AssertionError("expected an error for a missing banner")
+def test_banner_without_markers_or_missing_is_an_error(tmp_path):
+    plain = tmp_path / "plain.html"
+    plain.write_text("<html><body><div id='banner'></div></body></html>")
+    for path, message in ((plain, "banner:html:start"), (tmp_path / "missing.html", "missing.html")):
+        try:
+            _build(tmp_path, "--banner", str(path))
+        except SystemExit as exc:
+            assert message in str(exc)
+        else:
+            raise AssertionError(f"expected an error for {path}")
